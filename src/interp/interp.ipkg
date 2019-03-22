@@ -1,0 +1,5 @@
+package interp
+
+opts = "--total"
+
+modules = Interp

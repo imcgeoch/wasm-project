@@ -1,0 +1,7 @@
+# Idris
+*.ibc
+*.idr~
+*.idr#
+
+# Vim
+*.swp

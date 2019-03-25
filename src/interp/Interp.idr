@@ -85,12 +85,29 @@ namespace instructions
                   | CurrMem
                   | GrowMem
                   | Constant Value
-                  -- TODO: Finish Unary/Binary/Test/Relop/etc
+                  | Clz      | Ctz      | Popcnt
+
+                  -- Bin op
+                  | IAdd     | ISub     | IMul     | IDiv Sign
+                  | Rem Sign | And      | Or       | Xor
+                  | Shl      | Shr Sign | Rotl     | Rotr
+
+                  -- Test op
+                  | Eqz
+
+                  -- Rel op
+                  | IEq | INe | ILt Sign | IGt Sign | ILe Sign | IGe Sign
+
+                  -- Conversion op
+                  | Convert | Reinterpret
+
                   ----------------------------------------
                   ---      Administrative  Syntax      ---
                   ----------------------------------------
                   | Trap
                   | CallCl Closure
+                  | Label Nat (List Insn) (List Insn)
+                  | Local Nat Int (List Value) (List Insn)
 
 namespace program
 
@@ -111,6 +128,8 @@ namespace program
         size    : Int
         body    : Either (List Int) Import -- XXX Not sure if this is correct
 
+    ||| A memory declaration in a Module, this represents how the memory is defined,
+    ||| not the instantiation of memory (which is defined under MemInst)
     record Memory where
         constructor MkMemory
         exports : List Export
@@ -126,19 +145,38 @@ namespace program
 --- The following is taken from Figure 2 in PLDI
 namespace execution
 
+    ||| LocalContext: a convenient notation to help us reason about control flow.
+    ||| TODO: Do we need to define this? It makes our type system a little tricky
+    ||| For instance, in LCNest, we only want to accept labels instead of
+    ||| arbitrary Insns (which is doable) and we will need to have this exist in our
+    ||| list of instructions --- does this count as administrative syntax? Should we
+    ||| include this in our Insn type?
     data LocalContext : Nat -> Type where
         ||| The base case of a local context is v* [-] e*, which is just a list of values and a
         ||| list of instructions.
         LCBase : (List Value) -> (List Insn) -> LocalContext Z
 
         ||| Inductively build a new local context from a previous one.
+        ||| TODO: This isn't quite correct
         LCNest : (List Value) -> (label:Insn) -> LocalContext k -> (List Insn) -> LocalContext (S k)
+
+    ||| An instance of a linear memory.
+    ||| NOTE: This is SUUUUPER inefficient since we don't have random access. This
+    ||| would need to be improved for any sort of runtime use
+    MemInst : Type
+    MemInst = List Bits8
+
+    ||| An instance of a function table at runtime.
+    ||| NOTE: This is SUUUUPER inefficient since we don't have random access. This
+    ||| would need to be improved for any sort of runtime use
+    TabInst : Type
+    TabInst = List Closure
 
     record Store where
         constructor MkStore
-        inst    : Instance
-        tables  : List Table
-        memory  : List Memory
+        inst    : List Instance
+        tables  : List TabInst
+        memory  : List MemInst
 
 data Interp : Type where -- empty for now
 

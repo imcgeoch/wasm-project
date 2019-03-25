@@ -26,7 +26,6 @@ namespace types
 
 
 namespace instructions
-
     ||| Signed or unsigned
     data Sign = S | U
 
@@ -36,43 +35,64 @@ namespace instructions
                | F32Const Void
                | F64Const Double
 
-    ||| Bytecode Instructions: These are taken from Fig 1 of the PLDI paper
-    data Insn = Unreachable
-              | Nop
-              | Drop
-              | Select
-              | Block FnType (List Insn)
-           -- | Loop  FnType (List Insn)
-              | If FnType (List Insn) (List Insn)
-              | Br Int
-              | BrIf Int
-           -- | BrTable (List Insn) -- XXX: Need to ensure that list is non-empty
-              | Return
-              | Call Int
-              | CallIndirect FnType
-              | GetLocal Int
-              | SetLocal Int
-              | TeeLocal Int
-              | GetGlobal Int
-              | SetGlobal Int
-           -- Hold of on load and store--these is somewhat involved
-           -- | Load  WasmType TODO
-           -- | Store WasmType TODO
-              | CurrMem
-              | GrowMem
-              | Constant Value
-              -- TODO: Finish Unary/Binary/Test/Relop/etc
+    mutual
+        ||| XXX: Closures have special requirements for their function (namely,
+        ||| not an import and have all exports erased). We need to make a new
+        ||| type to handle this once we have a grasp on what's happening
+        record Closure where
+            constructor MkClosure
+            inst : Instance
+            code : Function  -- XXX: Where f is not an import and has all exports erased
+
+        ||| An instantiated module
+        record Instance where
+            constructor MkInstance
+            fns     : List Closure
+            globals : List Value
+
+        data Export = Ex String
+
+        ||| A Wasm Function. TODO: Finish
+        record Function where
+            constructor MkFn
+            exports    : List Export
+            fnType     : FnType
+            wtfIsThis1 : List WasmType
+            code       : List Insn
+
+        ||| Bytecode Instructions: These are taken from Fig 1 of the PLDI paper
+        data Insn = Unreachable
+                  | Nop
+                  | Drop
+                  | Select
+                  | Block FnType (List Insn)
+               -- | Loop  FnType (List Insn)
+                  | If FnType (List Insn) (List Insn)
+                  | Br Int
+                  | BrIf Int
+               -- | BrTable (List Insn) -- XXX: Need to ensure that list is non-empty
+                  | Return
+                  | Call Int
+                  | CallIndirect FnType
+                  | GetLocal Int
+                  | SetLocal Int
+                  | TeeLocal Int
+                  | GetGlobal Int
+                  | SetGlobal Int
+               -- Hold of on load and store--these is somewhat involved
+               -- | Load  WasmType TODO
+               -- | Store WasmType TODO
+                  | CurrMem
+                  | GrowMem
+                  | Constant Value
+                  -- TODO: Finish Unary/Binary/Test/Relop/etc
+                  ----------------------------------------
+                  ---      Administrative  Syntax      ---
+                  ----------------------------------------
+                  | Trap
+                  | CallCl Closure
 
 namespace program
-    data Export = Ex String
-
-    ||| A Wasm Function. TODO: Finish
-    record Function where
-        constructor MkFn
-        exports : List Export
-        fnType  : FnType
-        wtfIsThis1 : List WasmType
-        code    : List Insn
 
     record Import where
         constructor MkImport
@@ -105,20 +125,14 @@ namespace program
 
 --- The following is taken from Figure 2 in PLDI
 namespace execution
-    mutual
-        ||| XXX: Closures have special requirements for their function (namely,
-        ||| not an import and have all exports erased). We need to make a new
-        ||| type to handle this once we have a grasp on what's happening
-        record Closure where
-            constructor MkClosure
-            inst : Instance
-            code : Function  -- XXX: Where f is not an import and has all exports erased
 
-        ||| An instantiated module
-        record Instance where
-            constructor MkInstance
-            fns     : List Closure
-            globals : List Value
+    data LocalContext : Nat -> Type where
+        ||| The base case of a local context is v* [-] e*, which is just a list of values and a
+        ||| list of instructions.
+        LCBase : (List Value) -> (List Insn) -> LocalContext Z
+
+        ||| Inductively build a new local context from a previous one.
+        LCNest : (List Value) -> (label:Insn) -> LocalContext k -> (List Insn) -> LocalContext (S k)
 
     record Store where
         constructor MkStore

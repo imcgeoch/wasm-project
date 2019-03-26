@@ -86,6 +86,17 @@ data Instruction =
     | FnCall FuncIdx
     | FnCall_Indirect TypeIdx
 
+		--- ADMINISTRATIVE INSTRUCTIONS ---
+		-- The following are administrative instructions that are defined in
+    -- https://webassembly.github.io/spec/core/exec/runtime.html#administrative-instructions
+    -- These are not available to the programmer and are only introduced at
+    -- runtime. As such, it would be good practice to mirror the Instructions
+    -- datatype, call this ExecInstructions, with the obvious injection
+    -- Instructions -> ExecInstructions, and simply add in the extra
+    -- administrative instructions. For simplicity we list the admin
+    -- instructions here, but if this becomes an issue this can be fixed down
+    -- the line with relatively little pain.
+
 ||| https://webassembly.github.io/spec/core/syntax/instructions.html#expressions
 Expr : Type
 Expr = List Instruction

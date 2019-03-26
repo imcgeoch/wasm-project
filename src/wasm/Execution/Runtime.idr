@@ -1,6 +1,7 @@
 ||| As defined in https://webassembly.github.io/spec/core/exec/runtime.html
 module Execution.Runtime
 
+import Structure.Instructions
 import Structure.Modules
 import Structure.Types
 import Data.Vect
@@ -11,10 +12,10 @@ import Data.Vect
 |||       I'm keeping it in for now to conform to the spec.
 |||
 ||| Spec: https://webassembly.github.io/spec/core/exec/runtime.html#syntax-val
-data Value = I32Val Bits32
-           | I64Val Void    -- XXX: Can't be created yet
-           | F32Val Void    -- XXX: Can't be created yet
-           | F64Val Void    -- XXX: Can't be created yet
+data Val = I32Val Bits32
+         | I64Val Void    -- XXX: Can't be created yet
+         | F32Val Void    -- XXX: Can't be created yet
+         | F64Val Void    -- XXX: Can't be created yet
 
 ||| A result is the outcome of a computation. It is either a sequence of values
 ||| or a trap.
@@ -23,7 +24,29 @@ data Value = I32Val Bits32
 ||| value.
 |||
 ||| Spec: https://webassembly.github.io/spec/core/exec/runtime.html#syntax-result
-data Result = ResultVal (Maybe Value) | TrapVal
+data Result = ResultVal (Maybe Val) | TrapVal
+
+--- Addresses: https://webassembly.github.io/spec/core/exec/runtime.html#syntax-addr
+
+||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-addr
+Addr : Type
+Addr = Nat
+
+||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-funcaddr
+FuncAddr : Type
+FuncAddr = Addr
+
+||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-tableaddr
+TableAddr : Type
+TableAddr = Addr
+
+||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-memaddr
+MemAddr : Type
+MemAddr = Addr
+
+||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-globaladdr
+GlobalAddr : Type
+GlobalAddr = Addr
 
 mutual
     ||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-store
@@ -35,27 +58,6 @@ mutual
         globals : Vect n4 GlobalInst
 
 
-    --- Addresses: https://webassembly.github.io/spec/core/exec/runtime.html#syntax-addr
-
-    ||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-addr
-    Addr : Type
-    Addr = Nat
-
-    ||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-funcaddr
-    FuncAddr : Type
-    FuncAddr = Addr
-
-    ||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-tableaddr
-    TableAddr : Type
-    TableAddr = Addr
-
-    ||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-memaddr
-    MemAddr : Type
-    MemAddr = Addr
-
-    ||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-globaladdr
-    GlobalAddr : Type
-    GlobalAddr = Addr
 
     ||| A _module instance_ is the runtime representation of a `module`. It is
     ||| created by instantiating a module and collects runtime representations
@@ -120,7 +122,7 @@ mutual
     ||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-globalinst
     record GlobalInst where
         constructor MkGlobalInst
-        value : Value
+        value : Val
         mut   : Mut
 
     ||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-exportinst
@@ -152,4 +154,32 @@ mutual
     globals : Vect n ExternVal -> (m ** Vect m ExternVal)
     globals = filter (\x => case x of ExtGlobal arg => True
                                       _             => False)
+
+mutual
+    ||| https://webassembly.github.io/spec/core/exec/runtime.html#labels
+    record Label where
+        constructor MkLabel
+        arity : Nat
+        cont  : Expr
+
+    ||| https://webassembly.github.io/spec/core/exec/runtime.html#frames
+    record Activation where
+        constructor MkActivation
+        arity : Nat
+        frame : Frame
+
+    ||| https://webassembly.github.io/spec/core/exec/runtime.html#frames<Paste>
+    record Frame where
+        constructor MkFrame
+        locals : Vect numVals Val
+        modul  : ModuleInst
+
+||| https://webassembly.github.io/spec/core/exec/runtime.html#stack
+data StackEntry = StVal Val
+                | StLabel Label
+                | StFrame
+
+||| https://webassembly.github.io/spec/core/exec/runtime.html#stack
+Stack : Nat ->  Type
+Stack n = Vect n StackEntry
 

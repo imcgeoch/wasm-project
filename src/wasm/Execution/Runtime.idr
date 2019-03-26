@@ -161,7 +161,7 @@ mutual
     record Label where
         constructor MkLabel
         arity : Nat
-        cont  : Expr
+        cont  : Expr m
 
     ||| https://webassembly.github.io/spec/core/exec/runtime.html#frames
     record Activation where
@@ -326,3 +326,4 @@ instrToExecInstr Return = Return
 instrToExecInstr (FnCall fnIdx) = FnCall fnIdx
 instrToExecInstr (FnCall_Indirect tpIdx) = FnCall_Indirect tpIdx
 
+mapInstrs : Expr n -> ExecExpr n

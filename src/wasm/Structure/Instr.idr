@@ -98,6 +98,6 @@ data Instr =
     -- the line with relatively little pain.
 
 ||| https://webassembly.github.io/spec/core/syntax/instructions.html#expressions
-Expr : Type
-Expr = List Instr
+Expr : Nat -> Type
+Expr n = Vect n Instr
 

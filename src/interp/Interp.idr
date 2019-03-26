@@ -3,180 +3,302 @@
 ||| validator hooked up
 module Interp
 import Data.Vect
+import Data.Bits
 
+-- Definitions from https://webassembly.github.io/spec/core/syntax/modules.html#syntax-localidx
+namespace indices
+    TypeIdx : Type
+    TypeIdx = Bits32
+
+    FuncIdx : Type
+    FuncIdx = Bits32
+
+    TableIdx : Type
+    TableIdx = Bits32
+
+    MemIdx : Type
+    MemIdx = Bits32
+
+    GlobalIdx : Type
+    GlobalIdx = Bits32
+
+    LocalIdx : Type
+    LocalIdx = Bits32
+
+    LabelIdx : Type
+    LabelIdx = Bits32
+
+-- Definitions from https://webassembly.github.io/spec/core/syntax/types.html
 namespace types
 
-    ||| Basic machine types
-    data WasmType = I32 | I64 | F32 | F64
+    ||| ValType: Basic machine types
+    |||
+    ||| Spec: https://webassembly.github.io/spec/core/syntax/types.html#syntax-valtype
+    data ValType = I32 | I64 | F32 | F64
 
     ||| Packed types
     data PackedType = P8 | P16 | P32
 
-    ||| Function types
-    data FnType : Type where
-        Maps : List WasmType -> List WasmType -> FnType
+    ||| width: return the width in bits of ValType
+    width : ValType -> Nat
+    width I32 = 32
+    width I64 = 64
+    width F32 = 32
+    width F64 = 64
 
-    data GlobalType = Mut WasmType | Val WasmType
+    ||| ResultType: classifies the result of executing instructions or blocks
+    |||
+    ||| Spec: https://webassembly.github.io/spec/core/syntax/types.html#syntax-resulttype
+    ResultType : Type
+    ResultType = Maybe ValType
 
-    wasmToIdrisType : WasmType -> Type
-    wasmToIdrisType I32 = Bits32
-    wasmToIdrisType I64 = Bits64
-    wasmToIdrisType F32 = Void   -- Can't handle this currently
-    wasmToIdrisType F64 = Double
+    ||| FuncType: Function types classify the signature of functions, mapping a
+    ||| vector of parameters to a vector of results
+    |||
+    ||| Spec: https://webassembly.github.io/spec/core/syntax/types.html#syntax-functype
+    record FuncType where
+        constructor MkFuncType
+        domain   : Vect n ValType
+        -- The spec has this as a vect of length 0 or 1
+        codomain : Maybe ValType
 
+    ||| Limits: Limits classify the size range of resizeable storage associated
+    ||| with memory types and table types.
+    |||
+    ||| Spec: https://webassembly.github.io/spec/core/syntax/types.html#syntax-limits
+    record Limits where
+        constructor MkLimits
+        min : Int
+        max : Maybe Int
+
+    ||| MemType: Memory types classify linear memories and their size range.
+    ||| This is currently just an alias to Limits, but to conform to the doc
+    ||| and increase readability we separate this out into its own definition.
+    |||
+    ||| Spec: https://webassembly.github.io/spec/core/syntax/types.html#syntax-memtype
+    MemType : Type
+    MemType = Limits
+
+    ||| ElemType: The element type `funcref` is the infinite union of all
+    ||| function types. A table of that type thus contains references to
+    ||| functions of heterogeneous type.
+    |||
+    ||| Spec: https://webassembly.github.io/spec/core/syntax/types.html#syntax-elemtype
+    ElemType : Type
+    -- TODO: Is this correct?
+    ElemType = FuncType
+
+    ||| TableType: Table types classify tables over elements of _element types_
+    ||| within a size range.
+    TableType : Type
+    TableType = (Limits, ElemType)
+
+    ||| Is this piece of data mutable or not?
+    |||
+    ||| Spec: https://webassembly.github.io/spec/core/syntax/types.html#syntax-mut
+    data Mut = Const | Var
+
+    ||| GlobalType: global types classify `global` variables, which hold a value
+    ||| and can either be mutable or immutable
+    |||
+    ||| Spec: https://webassembly.github.io/spec/core/syntax/types.html#syntax-globaltype
+    record GlobalType where
+        constructor MkGlobalType
+        mut  : Mut
+        type : ValType
+
+    ||| ExternType: External types classify imports and external values with
+    ||| their respective types.
+    |||
+    ||| Spec: https://webassembly.github.io/spec/core/syntax/types.html#syntax-externtype
+    data ExternType = ExtFunc   FuncType
+                    | ExtTable  TableType
+                    | ExtMem    MemType
+                    | ExtGlobal GlobalType
+
+    --- Conventions From https://webassembly.github.io/spec/core/syntax/types.html#id1:
+    funcs : Vect n ExternType -> (m ** Vect m ExternType)
+    funcs = filter (\x => case x of ExtFunc arg => True
+                                    _           => False)
+
+    tables : Vect n ExternType -> (m ** Vect m ExternType)
+    tables = filter (\x => case x of ExtTable arg => True
+                                     _            => False)
+
+    mems : Vect n ExternType -> (m ** Vect m ExternType)
+    mems = filter (\x => case x of ExtMem arg => True
+                                   _          => False)
+
+    globals : Vect n ExternType -> (m ** Vect m ExternType)
+    globals = filter (\x => case x of ExtGlobal arg => True
+                                      _             => False)
 
 namespace instructions
-    ||| Signed or unsigned
-    data Sign = S | U
 
-    ||| Gives a literal value of a given type
-    data Value = I32Const Bits32
-               | I64Const Bits64
-               | F32Const Void
-               | F64Const Double
+    ||| An argument to a memory instruction
+    record MemArg where
+        constructor MkMemArg
+        offset : Bits32
+        align  : Bits32
 
+    data Instruction =
+        -- Numeric Instructions
+        -- For now, I32 only
+          I32Const Bits32
+        | I32_clz
+        | I32_ctz
+        | I32_add
+        | I32_sub
+        | I32_mul
+        | I32_div_s
+        | I32_div_u
+        | I32_rem_s
+        | I32_rem_u
+        | I32_or
+        | I32_xor
+        | I32_shl
+        | I32_shr_s
+        | I32_shr_u
+        | I32_rotl
+        | I32_rotr
+        | I32_eqz
+        | I32_eq
+        | I32_ne
+        | I32_lt_s
+        | I32_lt_u
+        | I32_gt_s
+        | I32_gt_u
+        | I32_le_s
+        | I32_le_u
+        | I32_ge_s
+        | I32_ge_u
+        -- Parametric Instructions
+        | Drop
+        | Select
+        -- Variable Instructions
+        | Local_get LocalIdx
+        | Local_set LocalIdx
+        | Local_tee LocalIdx
+        | Global_get GlobalIdx
+        | Global_set GlobalIdx
+        -- Memory Instructions
+        | I32_load  MemArg
+        | I32_store MemArg
+        | I32_load8_s  MemArg
+        | I32_load8_u  MemArg
+        | I32_load16_s MemArg
+        | I32_load16_u MemArg
+        | I32_store8_s  MemArg
+        | I32_store8_u  MemArg
+        | I32_store16_s MemArg
+        | I32_store16_u MemArg
+        | Mem_size
+        | Mem_grow
+        -- Control Instructions
+        | Nop
+        | Unreachable
+        | Block ResultType (Vect _ Instruction)
+        | Loop  ResultType (Vect _ Instruction)
+        | If    ResultType (Vect _ Instruction) (Vect _ Instruction)
+        | Br    LabelIdx
+        | BrIf  LabelIdx
+        -- br_table, the first argument (the Vect) is a `vec` type in the WASM
+        -- spec, which has the additional constraint that n < 2^32. We will need
+        -- to create a new type for this, but creating 2^32 in Nats will be
+        -- super expensive. Work around? Just don't worry about it?
+        | BrTable (Vect n LabelIdx) LabelIdx
+        | Return
+        | FnCall FuncIdx
+        | FnCall_Indirect TypeIdx
+
+    Expr : Type
+    Expr = List Instruction
+
+-- Definitions from https://webassembly.github.io/spec/core/syntax/modules.html
+namespace modules
     mutual
-        ||| XXX: Closures have special requirements for their function (namely,
-        ||| not an import and have all exports erased). We need to make a new
-        ||| type to handle this once we have a grasp on what's happening
-        record Closure where
-            constructor MkClosure
-            inst : Instance
-            code : Function  -- XXX: Where f is not an import and has all exports erased
+        ||| Define the Module type.
+        |||
+        ||| Spec: https://webassembly.github.io/spec/core/syntax/modules.html#syntax-module
+        record Module where
+            constructor MkModule
+            types   : Vect n FuncType
+            funcs   : Vect n Func
+            tables  : Vect n Table
+            mems    : Vect n Mem
+            globals : Vect n Global
+            elem    : Vect n Elem
+            datums  : Vect n Data
+            start   : Maybe Start
+            imports : Vect n Import
+            exports : Vect n Export
 
-        ||| An instantiated module
-        record Instance where
-            constructor MkInstance
-            fns     : List Closure
-            globals : List Value
 
-        data Export = Ex String
+        ||| https://webassembly.github.io/spec/core/syntax/modules.html#syntax-start
+        record Start where
+            constructor MkStart
+            func : FuncIdx
 
-        ||| A Wasm Function. TODO: Finish
-        record Function where
-            constructor MkFn
-            exports    : List Export
-            fnType     : FnType
-            wtfIsThis1 : List WasmType
-            code       : List Insn
+        ||| https://webassembly.github.io/spec/core/syntax/modules.html#syntax-func
+        record Func where
+            constructor MkFunc
+            type   : TypeIdx
+            locals : Vect n ValType
+            body   : Expr
 
-        ||| Bytecode Instructions: These are taken from Fig 1 of the PLDI paper
-        data Insn = Unreachable
-                  | Nop
-                  | Drop
-                  | Select
-                  | Block FnType (List Insn)
-               -- | Loop  FnType (List Insn)
-                  | If FnType (List Insn) (List Insn)
-                  | Br Int
-                  | BrIf Int
-               -- | BrTable (List Insn) -- XXX: Need to ensure that list is non-empty
-                  | Return
-                  | Call Int
-                  | CallIndirect FnType
-                  | GetLocal Int
-                  | SetLocal Int
-                  | TeeLocal Int
-                  | GetGlobal Int
-                  | SetGlobal Int
-               -- Hold of on load and store--these is somewhat involved
-               -- | Load  WasmType TODO
-               -- | Store WasmType TODO
-                  | CurrMem
-                  | GrowMem
-                  | Constant Value
-                  | Clz      | Ctz      | Popcnt
+        ||| https://webassembly.github.io/spec/core/syntax/modules.html#syntax-table
+        record Table where
+            constructor MkTable
+            type : TableType
 
-                  -- Bin op
-                  | IAdd     | ISub     | IMul     | IDiv Sign
-                  | Rem Sign | And      | Or       | Xor
-                  | Shl      | Shr Sign | Rotl     | Rotr
+        ||| https://webassembly.github.io/spec/core/syntax/modules.html#syntax-mem
+        record Mem where
+            constructor MkMem
+            type : MemType
 
-                  -- Test op
-                  | Eqz
+        ||| https://webassembly.github.io/spec/core/syntax/modules.html#syntax-global
+        data Global : Type where
 
-                  -- Rel op
-                  | IEq | INe | ILt Sign | IGt Sign | ILe Sign | IGe Sign
+        ||| https://webassembly.github.io/spec/core/syntax/modules.html#syntax-elem
+        record Elem where
+            constructor MkElem
+            table  : TableIdx
+            offset : Expr     -- XXX: ConstExpr
+            init   : Vect n FuncIdx
 
-                  -- Conversion op
-                  | Convert | Reinterpret
+        ||| https://webassembly.github.io/spec/core/syntax/modules.html#syntax-data
+        record Data where
+            constructor MkData
+            datums : MemIdx  -- XXX: Currently, only valid MemIdx is 0 (see note
+                             --      at above link for more info)
+            offset : Expr    -- XXX: ConstExpr
+            init   : Vect n Bits8
 
-                  ----------------------------------------
-                  ---      Administrative  Syntax      ---
-                  ----------------------------------------
-                  | Trap
-                  | CallCl Closure
-                  | Label Nat (List Insn) (List Insn)
-                  | Local Nat Int (List Value) (List Insn)
+        ||| https://webassembly.github.io/spec/core/syntax/modules.html#syntax-import
+        record Import where
+            constructor MkImport
+            modul : String
+            name  : String
+            desc  : ImportDesc
 
-namespace program
+        record ImportDesc where
+            constructor MkImportDesc
+            func   : TypeIdx
+            table  : TableType
+            mem    : MemType
+            global : GlobalType
 
-    record Import where
-        constructor MkImport
-        mod  : String
-        item : String
+        ||| https://webassembly.github.io/spec/core/syntax/modules.html#syntax-export
+        record Export where
+            constructor MkExport
+            name : String
+            desc : ExportDesc
 
-    record Global where
-        constructor MkGlobal
-        exports   : List Export
-        globTypes : List GlobalType
-        init      : Either (List Insn) Import
+        record ExportDesc where
+            constructor MkExportDesc
+            func   : FuncIdx
+            table  : TableIdx
+            mem    : MemIdx
+            global : GlobalIdx
 
-    record Table where
-        constructor MkTable
-        exports : List Export
-        size    : Int
-        body    : Either (List Int) Import -- XXX Not sure if this is correct
-
-    ||| A memory declaration in a Module, this represents how the memory is defined,
-    ||| not the instantiation of memory (which is defined under MemInst)
-    record Memory where
-        constructor MkMemory
-        exports : List Export
-        body    : Either Int Import
-
-    record Module where
-        constructor MkModule
-        functions : List Function
-        globals   : List Global
-        table     : Maybe Table
-        memory    : Maybe Memory
-
---- The following is taken from Figure 2 in PLDI
-namespace execution
-
-    ||| LocalContext: a convenient notation to help us reason about control flow.
-    ||| TODO: Do we need to define this? It makes our type system a little tricky
-    ||| For instance, in LCNest, we only want to accept labels instead of
-    ||| arbitrary Insns (which is doable) and we will need to have this exist in our
-    ||| list of instructions --- does this count as administrative syntax? Should we
-    ||| include this in our Insn type?
-    data LocalContext : Nat -> Type where
-        ||| The base case of a local context is v* [-] e*, which is just a list of values and a
-        ||| list of instructions.
-        LCBase : (List Value) -> (List Insn) -> LocalContext Z
-
-        ||| Inductively build a new local context from a previous one.
-        ||| TODO: This isn't quite correct
-        LCNest : (List Value) -> (label:Insn) -> LocalContext k -> (List Insn) -> LocalContext (S k)
-
-    ||| An instance of a linear memory.
-    ||| NOTE: This is SUUUUPER inefficient since we don't have random access. This
-    ||| would need to be improved for any sort of runtime use
-    MemInst : Type
-    MemInst = List Bits8
-
-    ||| An instance of a function table at runtime.
-    ||| NOTE: This is SUUUUPER inefficient since we don't have random access. This
-    ||| would need to be improved for any sort of runtime use
-    TabInst : Type
-    TabInst = List Closure
-
-    record Store where
-        constructor MkStore
-        inst    : List Instance
-        tables  : List TabInst
-        memory  : List MemInst
-
-data Interp : Type where -- empty for now
 

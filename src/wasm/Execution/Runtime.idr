@@ -264,6 +264,31 @@ mutual
         | Lbl Label (Vect _ ExecInstr)
         | Frm Frame (Vect _ ExecInstr)
 
+||| A thread is a computation over instructions that operates relative to a
+||| current frame referring to the home module instance that the computation
+||| runs in.
+|||
+||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-thread
+Thread : Nat -> Type
+Thread n = (Frame, ExecExpr n)
+
+||| A configuration consists of the current store and an executing thread.
+|||
+||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-config
+Config : Nat -> Type
+Config n = (Store, Thread n)
+
+--------------------------------------------------------------------------------
+---                            Evaluation Context                            ---
+--------------------------------------------------------------------------------
+
+{-
+  TODO: I'm not sure what to do for evaluation contexts, defined at
+  https://webassembly.github.io/spec/core/exec/runtime.html#evaluation-contexts.
+  Do we need to define these explicitly, or can we just model reductions to
+  respect them?
+-}
+
 ||| Convert static instructions to dynamic instructions
 instrToExecInstr : Instr -> ExecInstr
 instrToExecInstr (I32Const x) = I32Const x
@@ -327,3 +352,6 @@ instrToExecInstr (FnCall fnIdx) = FnCall fnIdx
 instrToExecInstr (FnCall_Indirect tpIdx) = FnCall_Indirect tpIdx
 
 mapInstrs : Expr n -> ExecExpr n
+mapInstrs = map instrToExecInstr
+
+

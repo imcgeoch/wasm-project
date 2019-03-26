@@ -87,24 +87,24 @@ namespace types
     ||| their respective types.
     |||
     ||| Spec: https://webassembly.github.io/spec/core/syntax/types.html#syntax-externtype
-    data ExternType = ExtFunc   FuncType
-                    | ExtTable  TableType
-                    | ExtMem    MemType
-                    | ExtGlobal GlobalType
+    data ExternType = ExtFuncTp   FuncType
+                    | ExtTableTp  TableType
+                    | ExtMemTp    MemType
+                    | ExtGlobalTp GlobalType
 
     --- Conventions From https://webassembly.github.io/spec/core/syntax/types.html#id1:
     funcs : Vect n ExternType -> (m ** Vect m ExternType)
-    funcs = filter (\x => case x of ExtFunc arg => True
+    funcs = filter (\x => case x of ExtFuncTp arg => True
                                     _           => False)
 
     tables : Vect n ExternType -> (m ** Vect m ExternType)
-    tables = filter (\x => case x of ExtTable arg => True
+    tables = filter (\x => case x of ExtTableTp arg => True
                                      _            => False)
 
     mems : Vect n ExternType -> (m ** Vect m ExternType)
-    mems = filter (\x => case x of ExtMem arg => True
+    mems = filter (\x => case x of ExtMemTp arg => True
                                    _          => False)
 
     globals : Vect n ExternType -> (m ** Vect m ExternType)
-    globals = filter (\x => case x of ExtGlobal arg => True
+    globals = filter (\x => case x of ExtGlobalTp arg => True
                                       _             => False)

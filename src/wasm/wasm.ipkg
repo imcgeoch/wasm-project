@@ -1,0 +1,11 @@
+package wasm
+
+opts = "--total"
+
+modules = Structure.Indices
+        , Structure.Instructions
+        , Structure.Modules
+        , Structure.Types
+        , Structure.Values
+
+        , Execution.Runtime

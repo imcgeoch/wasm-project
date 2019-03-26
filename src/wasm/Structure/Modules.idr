@@ -1,7 +1,7 @@
 module Modules
 
 import Structure.Indices
-import Structure.Instructions
+import Structure.Instr
 import Structure.Types
 
 import Data.Vect

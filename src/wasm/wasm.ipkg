@@ -3,7 +3,7 @@ package wasm
 opts = "--total"
 
 modules = Structure.Indices
-        , Structure.Instructions
+        , Structure.Instr
         , Structure.Modules
         , Structure.Types
         , Structure.Values

@@ -1,6 +1,6 @@
 ||| Implementation of the Idris spec, these definitions are taken from
 ||| https://webassembly.github.io/spec/core/syntax/instructions.html
-module Structure.Instructions
+module Structure.Instr
 
 import Structure.Indices
 import Structure.Types
@@ -16,7 +16,7 @@ record MemArg where
     align  : Bits32
 
 ||| https://webassembly.github.io/spec/core/syntax/instructions.html#instructions
-data Instruction =
+data Instr =
     -- Numeric Instructions
     -- For now, I32 only
       I32Const Bits32
@@ -72,9 +72,9 @@ data Instruction =
     -- Control Instructions
     | Nop
     | Unreachable
-    | Block ResultType (Vect _ Instruction)
-    | Loop  ResultType (Vect _ Instruction)
-    | If    ResultType (Vect _ Instruction) (Vect _ Instruction)
+    | Block ResultType (Vect _ Instr)
+    | Loop  ResultType (Vect _ Instr)
+    | If    ResultType (Vect _ Instr) (Vect _ Instr)
     | Br    LabelIdx
     | BrIf  LabelIdx
     -- br_table, the first argument (the Vect) is a `vec` type in the WASM
@@ -99,5 +99,5 @@ data Instruction =
 
 ||| https://webassembly.github.io/spec/core/syntax/instructions.html#expressions
 Expr : Type
-Expr = List Instruction
+Expr = List Instr
 

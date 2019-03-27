@@ -7,6 +7,8 @@ import Structure.Modules
 import Structure.Types
 import Data.Vect
 
+%access public export
+
 ||| Wasm computations manipulate values of the four basic types.
 |||
 ||| Note: We can possibly remove this as we are just wrapping Idris values, but

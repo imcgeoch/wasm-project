@@ -9,3 +9,4 @@ modules = Structure.Indices
         , Structure.Values
 
         , Execution.Runtime
+        , Execution.JankInterp

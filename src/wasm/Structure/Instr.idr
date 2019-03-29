@@ -15,122 +15,155 @@ record MemArg where
     offset : Bits32
     align  : Bits32
 
-data IUnaryOp = Clz
-              | Ctz
-              | Popcnt
+%name MemArg memarg
 
-data FUnaryOp = Abs
-              | Neg
-              | Sqrt
-              | Ceil
-              | Floor
-              | Trunc
-              | Nearest
+mutual
+    ||| https://webassembly.github.io/spec/core/syntax/instructions.html#instructions
+    data Instr = Const    (Constant vt val)
+               -- Unary operators
+               | IUnOp    IUnaryOp       Width
+               | FUnOp    FUnaryOp       Width
+               -- Binary operators
+               | IBinOp   IBinaryOp      Width
+               | FBinOp   FBinaryOp      Width
+               -- Int Test instructions
+               | ITest    ITestOp        Width
+               -- Int Relational Ops
+               | IRel     IRelationalOp  Width 
+               | FRel     FRelationalOp  Width
+               -- Conversion Instructions
+               | ConvInstr ConversionInstr
+               -- Memory Instructions
+               | MemInstr MemoryInstr
+               -- Control Instructions
+               | ContInstr ControlInstr
 
-data Sign = Signed | Unsigned
+    data IUnaryOp = Clz
+                  | Ctz
+                  | Popcnt
 
-data IBinaryOp = IAdd
-               | ISub
-               | IMul
-               | IDiv Sign
-               | IRem Sign
-               | And
-               | Or
-               | Xor
-               | Shl
-               | Shr Sign
-               | Rotl
-               | Rotr
+    data FUnaryOp = Abs
+                  | Neg
+                  | Sqrt
+                  | Ceil
+                  | Floor
+                  | Trunc
+                  | Nearest
 
-data FBinaryOp = FAdd
-               | FSub
-               | FMul
-               | FDiv
-               | FMin
-               | FMax
-               | FCopySign
+    data Sign = Signed | Unsigned
 
-data ITestOp = Eqz
+    data IBinaryOp = IAdd
+                   | ISub
+                   | IMul
+                   | IDiv Sign
+                   | IRem Sign
+                   | And
+                   | Or
+                   | Xor
+                   | Shl
+                   | Shr Sign
+                   | Rotl
+                   | Rotr
 
-data IRelationalOp = IEq
-                   | INe
-                   | ILt Sign
-                   | IGt Sign
-                   | ILe Sign
-                   | IGe Sign
+    data FBinaryOp = FAdd
+                   | FSub
+                   | FMul
+                   | FDiv
+                   | FMin
+                   | FMax
+                   | FCopySign
 
-machineType : ValType -> Type
-machineType (IValTp (ITp W32)) = Bits32
-machineType (IValTp (ITp W64)) = Void
-machineType (FValTp (FTp W32)) = Void
-machineType (FValTp (FTp W64)) = Void
+    data ITestOp = Eqz
 
-||| Create a const of a given type
-data Const : (vt : ValType) -> machineType vt -> Type where
-    AConst : (vt : ValType) -> (val : machineType vt) -> Const vt val
+    data IRelationalOp = IEq
+                       | INe
+                       | ILt Sign
+                       | IGt Sign
+                       | ILe Sign
+                       | IGe Sign
 
-||| https://webassembly.github.io/spec/core/syntax/instructions.html#instructions
-data Instr =
-    -- Numeric Instructions
-    -- For now, I32 only
-      I32Const Bits32
-    | IUnOp    IUnaryOp       Width
-    | IBinOp   IBinaryOp      Width
-    | FUnOp    FUnaryOp       Width
-    | FBinOp   FBinaryOp      Width
-    | ITest    ITestOp        Width
-    | IRel     IRelationalOp  Width
-    -- Parametric Instructions
-    | Drop
-    | Select
-    -- Variable Instructions
-    | Local_get LocalIdx
-    | Local_set LocalIdx
-    | Local_tee LocalIdx
-    | Global_get GlobalIdx
-    | Global_set GlobalIdx
-    -- Memory Instructions
-    | I32_load  MemArg
-    | I32_store MemArg
-    | I32_load8_s  MemArg
-    | I32_load8_u  MemArg
-    | I32_load16_s MemArg
-    | I32_load16_u MemArg
-    | I32_store8_s  MemArg
-    | I32_store8_u  MemArg
-    | I32_store16_s MemArg
-    | I32_store16_u MemArg
-    | Mem_size
-    | Mem_grow
-    -- Control Instructions
-    | Nop
-    | Unreachable
-    | Block ResultType (Vect _ Instr)
-    | Loop  ResultType (Vect _ Instr)
-    | If    ResultType (Vect _ Instr) (Vect _ Instr)
-    | Br    LabelIdx
-    | BrIf  LabelIdx
-    -- br_table, the first argument (the Vect) is a `vec` type in the WASM
-    -- spec, which has the additional constraint that n < 2^32. We will need
-    -- to create a new type for this, but creating 2^32 in Nats will be
-    -- super expensive. Work around? Just don't worry about it?
-    | BrTable (Vect n LabelIdx) LabelIdx
-    | Return
-    | FnCall FuncIdx
-    | FnCall_Indirect TypeIdx
+    data FRelationalOp = FEq
+                       | FNe
+                       | FLt
+                       | FGt
+                       | FLe
+                       | FGe
 
-		--- ADMINISTRATIVE INSTRUCTIONS ---
-		-- The following are administrative instructions that are defined in
-    -- https://webassembly.github.io/spec/core/exec/runtime.html#administrative-instructions
-    -- These are not available to the programmer and are only introduced at
-    -- runtime. As such, it would be good practice to mirror the Instructions
-    -- datatype, call this ExecInstructions, with the obvious injection
-    -- Instructions -> ExecInstructions, and simply add in the extra
-    -- administrative instructions. For simplicity we list the admin
-    -- instructions here, but if this becomes an issue this can be fixed down
-    -- the line with relatively little pain.
+    machineType : ValType -> Type
+    machineType (IValTp (ITp W32)) = Bits32
+    machineType (IValTp (ITp W64)) = Void
+    machineType (FValTp (FTp W32)) = Void
+    machineType (FValTp (FTp W64)) = Void
 
-||| https://webassembly.github.io/spec/core/syntax/instructions.html#expressions
-Expr : Nat -> Type
-Expr n = Vect n Instr
+    ||| Create a const of a given type
+    data Constant : (vt : ValType) -> machineType vt -> Type where
+        AConst : (vt : ValType) -> (val : machineType vt) -> Constant vt val
 
+    data ParametricInstr = Drop | Select
+
+    data VariableInstr = LocalGet  LocalIdx
+                       | LocalSet  LocalIdx
+                       | LocalTee  LocalIdx
+                       | GlobalGet GlobalIdx
+                       | GlobalSet GlobalIdx
+
+    data MemoryInstr = ILoad      (IntType   w)         MemArg
+                     | FLoad      (FloatType w)         MemArg
+                     | IStore     (IntType   w)         MemArg
+                     | FStore     (FloatType w)         MemArg
+                     | ILoad8     (IntType   w) Sign    MemArg
+                     | ILoad16    (IntType   w) Sign    MemArg
+                     | I64Load32                Sign    MemArg
+                     | IStore8    (IntType w)   Sign    MemArg
+                     | IStore16   (IntType w)   Sign    MemArg
+                     | I64Store32               Sign    MemArg
+                     | MemorySize
+                     | MemoryGrow
+
+    data ConversionInstr = I32WrapI64
+                         | I64ExtendI32  Sign
+                         | ITruncF       (IntType   w) (FloatType w) Sign
+                         | F32DemoteF64
+                         | F64DemoteF32
+                         | FConvertI     (FloatType w) (IntType   w) Sign
+                         | IReinterpretF (IntType   w) (FloatType w)
+                         | FReinterpretI (FloatType w) (IntType   w) 
+                         | ParamInstr ParametricInstr
+                         | VarInstr  VariableInstr
+
+    data ControlInstr = Nop
+                      | Unreachable
+                      | Block ResultType (Vect _ Instr)
+                      | Loop  ResultType (Vect _ Instr)
+                      | If    ResultType (Vect _ Instr) (Vect _ Instr)
+                      | Br    LabelIdx
+                      | BrIf  LabelIdx
+                      -- TODO: br_table, the first argument (the Vect) is a `vec` type in the WASM
+                      -- spec, which has the additional constraint that n < 2^32. We will need
+                      -- to create a new type for this, but creating 2^32 in Nats will be
+                      -- super expensive. Work around? Just don't worry about it?
+                      | BrTable (Vect _ LabelIdx) LabelIdx
+                      | Return
+                      | FnCall FuncIdx
+                      | FnCall_Indirect TypeIdx
+
+
+
+    ||| https://webassembly.github.io/spec/core/syntax/instructions.html#expressions
+    Expr : Nat -> Type
+    Expr n = Vect n Instr
+
+%name Instr instr
+%name Expr expr
+%name ControlInstr cont
+%name ConversionInstr conv
+%name IUnaryOp op
+%name FUnaryOp op
+%name IBinaryOp op
+%name FBinaryOp op
+%name IRelationalOp op
+%name FRelationalOp op
+%name Sign sx
+%name Constant constant
+%name MemoryInstr mem
+%name ITestOp op

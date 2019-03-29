@@ -20,6 +20,7 @@ data Val = I32Val Bits32
          | F32Val Void    -- XXX: Can't be created yet
          | F64Val Void    -- XXX: Can't be created yet
 
+
 ||| A result is the outcome of a computation. It is either a sequence of values
 ||| or a trap.
 |||
@@ -181,11 +182,13 @@ mutual
 ||| https://webassembly.github.io/spec/core/exec/runtime.html#stack
 data StackEntry = StVal Val
                 | StLabel Label
-                | StFrame
+                | StFrame Frame
 
 ||| https://webassembly.github.io/spec/core/exec/runtime.html#stack
 Stack : Nat ->  Type
 Stack n = Vect n StackEntry
+
+%name Stack stack
 
 mutual
     data AdminInstr = Trap
@@ -199,6 +202,8 @@ mutual
 
     ExecExpr : Nat -> Type
     ExecExpr n = Vect n ExecInstr
+
+    %name ExecExpr expr
 
 ||| Convenience function to transform an Instr into ExecInstr
 toExecInstr : Instr -> ExecInstr
@@ -221,6 +226,8 @@ Thread n = (Frame, ExecExpr n)
 ||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-config
 Config : Nat -> Type
 Config n = (Store, Thread n)
+
+%name Config config
 
 --------------------------------------------------------------------------------
 ---                            Evaluation Context                            ---

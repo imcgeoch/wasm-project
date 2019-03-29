@@ -9,16 +9,42 @@ import Data.Vect
 -- Definitions from https://webassembly.github.io/spec/core/syntax/types.html
 data Width = W32 | W64
 
+%name Width width
+
 data IntType : Width -> Type where
     ITp : (w : Width) -> IntType w
 
+%name IntType int_t
+
 data FloatType : Width -> Type where
     FTp : (w : Width) -> FloatType w
+
+%name FloatType float_t
+
+data PackedType = Packed8
+                | Packed16
+                | Packed32
+    
+%name PackedType pack_t
 
 ||| ValType: Basic machine types
 |||
 ||| Spec: https://webassembly.github.io/spec/core/syntax/types.html#syntax-valtype
 data ValType = IValTp (IntType w) | FValTp (FloatType w)
+
+%name ValType val_t
+
+I32_t : ValType
+I32_t = IValTp (ITp W32)
+
+I64_t : ValType
+I64_t = IValTp (ITp W64)
+
+F32_t : ValType
+F32_t = FValTp (FTp W32)
+
+F64_t : ValType
+F64_t = FValTp (FTp W64)
 
 width' : Width -> Nat
 width' W32 = 32
@@ -28,6 +54,7 @@ width' W64 = 64
 width : ValType -> Nat
 width (IValTp (ITp w)) = width' w
 width (FValTp (FTp w)) = width' w
+
 
 
 ||| ResultType: classifies the result of executing instructions or blocks
@@ -46,6 +73,8 @@ record FuncType where
     -- The spec has this as a vect of length 0 or 1
     codomain : Maybe ValType
 
+%name FuncType func_t
+
 ||| Limits: Limits classify the size range of resizeable storage associated
 ||| with memory types and table types.
 |||
@@ -55,6 +84,8 @@ record Limits where
     min : Int
     max : Maybe Int
 
+%name Limits lims
+
 ||| MemType: Memory types classify linear memories and their size range.
 ||| This is currently just an alias to Limits, but to conform to the doc
 ||| and increase readability we separate this out into its own definition.
@@ -62,6 +93,8 @@ record Limits where
 ||| Spec: https://webassembly.github.io/spec/core/syntax/types.html#syntax-memtype
 MemType : Type
 MemType = Limits
+
+%name MemType mem_t
 
 ||| ElemType: The element type `funcref` is the infinite union of all
 ||| function types. A table of that type thus contains references to

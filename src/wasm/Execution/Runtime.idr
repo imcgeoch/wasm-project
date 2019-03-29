@@ -180,7 +180,7 @@ mutual
 
 
 ||| https://webassembly.github.io/spec/core/exec/runtime.html#stack
-data StackEntry = StVal Val
+data StackEntry = StVal (Constant vt bits)
                 | StLabel Label
                 | StFrame Frame
 

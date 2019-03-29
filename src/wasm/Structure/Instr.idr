@@ -15,38 +15,71 @@ record MemArg where
     offset : Bits32
     align  : Bits32
 
+data IUnaryOp = Clz
+              | Ctz
+              | Popcnt
+
+data FUnaryOp = Abs
+              | Neg
+              | Sqrt
+              | Ceil
+              | Floor
+              | Trunc
+              | Nearest
+
+data Sign = Signed | Unsigned
+
+data IBinaryOp = IAdd
+               | ISub
+               | IMul
+               | IDiv Sign
+               | IRem Sign
+               | And
+               | Or
+               | Xor
+               | Shl
+               | Shr Sign
+               | Rotl
+               | Rotr
+
+data FBinaryOp = FAdd
+               | FSub
+               | FMul
+               | FDiv
+               | FMin
+               | FMax
+               | FCopySign
+
+data ITestOp = Eqz
+
+data IRelationalOp = IEq
+                   | INe
+                   | ILt Sign
+                   | IGt Sign
+                   | ILe Sign
+                   | IGe Sign
+
+machineType : ValType -> Type
+machineType (IValTp (ITp W32)) = Bits32
+machineType (IValTp (ITp W64)) = Void
+machineType (FValTp (FTp W32)) = Void
+machineType (FValTp (FTp W64)) = Void
+
+||| Create a const of a given type
+data Const : (vt : ValType) -> machineType vt -> Type where
+    AConst : (vt : ValType) -> (val : machineType vt) -> Const vt val
+
 ||| https://webassembly.github.io/spec/core/syntax/instructions.html#instructions
 data Instr =
     -- Numeric Instructions
     -- For now, I32 only
       I32Const Bits32
-    | I32_clz
-    | I32_ctz
-    | I32_add
-    | I32_sub
-    | I32_mul
-    | I32_div_s
-    | I32_div_u
-    | I32_rem_s
-    | I32_rem_u
-    | I32_or
-    | I32_xor
-    | I32_shl
-    | I32_shr_s
-    | I32_shr_u
-    | I32_rotl
-    | I32_rotr
-    | I32_eqz
-    | I32_eq
-    | I32_ne
-    | I32_lt_s
-    | I32_lt_u
-    | I32_gt_s
-    | I32_gt_u
-    | I32_le_s
-    | I32_le_u
-    | I32_ge_s
-    | I32_ge_u
+    | IUnOp    IUnaryOp       Width
+    | IBinOp   IBinaryOp      Width
+    | FUnOp    FUnaryOp       Width
+    | FBinOp   FBinaryOp      Width
+    | ITest    ITestOp        Width
+    | IRel     IRelationalOp  Width
     -- Parametric Instructions
     | Drop
     | Select

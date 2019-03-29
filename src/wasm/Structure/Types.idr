@@ -7,18 +7,28 @@ import Data.Vect
 %access public export
 
 -- Definitions from https://webassembly.github.io/spec/core/syntax/types.html
+data Width = W32 | W64
+
+data IntType : Width -> Type where
+    ITp : (w : Width) -> IntType w
+
+data FloatType : Width -> Type where
+    FTp : (w : Width) -> FloatType w
 
 ||| ValType: Basic machine types
 |||
 ||| Spec: https://webassembly.github.io/spec/core/syntax/types.html#syntax-valtype
-data ValType = I32 | I64 | F32 | F64
+data ValType = IValTp (IntType w) | FValTp (FloatType w)
 
-||| width: return the width in bits of ValType
+width' : Width -> Nat
+width' W32 = 32
+width' W64 = 64
+
+||| Get the width in bits of a ValType
 width : ValType -> Nat
-width I32 = 32
-width I64 = 64
-width F32 = 32
-width F64 = 64
+width (IValTp (ITp w)) = width' w
+width (FValTp (FTp w)) = width' w
+
 
 ||| ResultType: classifies the result of executing instructions or blocks
 |||

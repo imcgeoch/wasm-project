@@ -195,6 +195,12 @@ iValNotFVal Refl impossible
 fVal32NotFVal64 : (FValTp (FTp W32) = FValTp (FTp W64)) -> Void
 fVal32NotFVal64 Refl impossible
 
+machineType : ValType -> Type
+machineType (IValTp (ITp W32)) = Bits32
+machineType (IValTp (ITp W64)) = Void
+machineType (FValTp (FTp W32)) = Void
+machineType (FValTp (FTp W64)) = Void
+
 implementation DecEq ValType where
     decEq (IValTp (ITp W32)) (IValTp (ITp W32)) = Yes Refl
     decEq (IValTp (ITp W32)) (IValTp (ITp W64)) = No iVal32NotIVal64

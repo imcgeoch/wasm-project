@@ -89,12 +89,6 @@ mutual
                        | FLe
                        | FGe
 
-    machineType : ValType -> Type
-    machineType (IValTp (ITp W32)) = Bits32
-    machineType (IValTp (ITp W64)) = Void
-    machineType (FValTp (FTp W32)) = Void
-    machineType (FValTp (FTp W64)) = Void
-
     ||| Create a const of a given type
     data Constant : (vt : ValType) -> machineType vt -> Type where
         AConst : (vt : ValType) -> (val : machineType vt) -> Constant vt val

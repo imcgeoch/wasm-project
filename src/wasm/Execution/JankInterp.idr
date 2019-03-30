@@ -69,7 +69,7 @@ mutual
     oneStepFUnOp : Config l -> Stack m -> ExecExpr n -> FUnaryOp -> Width -> InterpStatus
 
     oneStepIBinOp : Config l -> Stack m -> ExecExpr n -> IBinaryOp -> Width -> InterpStatus
-    oneStepIBinOp _ [] _ _ _ = StatusError $ Err_StackUnderflow "IBinOp applied to empty stack"
+    oneStepIBinOp _ []        _ _ _ = StatusError $ Err_StackUnderflow "IBinOp applied to empty stack"
     oneStepIBinOp _ (x :: []) _ _ _ = StatusError $ Err_StackUnderflow "IBinOp applied to size-1 stack"
     oneStepIBinOp config ((StVal (AConst vt bits)) :: ((StVal (AConst vt' bits')) :: xs)) expr op width =
         case (decEq vt vt') of

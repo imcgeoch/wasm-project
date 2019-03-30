@@ -72,16 +72,10 @@ mutual
     oneStepIBinOp _ [] _ _ _ = StatusError $ Err_StackUnderflow "IBinOp applied to empty stack"
     oneStepIBinOp _ (x :: []) _ _ _ = StatusError $ Err_StackUnderflow "IBinOp applied to size-1 stack"
     oneStepIBinOp config ((StVal (AConst vt bits)) :: ((StVal (AConst vt' bits')) :: xs)) expr op width =
-      (case vt of
-            (IValTp (ITp w)) =>
-                    (case vt' of
-                          (IValTp (ITp w')) =>
-                                  case (w, w', width) of
-                                       (W32, W32, W32) => ?rhs_1
-                                       (W64, W64, W64) => ?rhs_2
-                                       _               => StatusError $ Err_StackWidthError "IBinOp applied to wrong width"
-                          (FValTp float_t) => StatusError  $ Err_StackTypeError "IBinOp applied to Float")
-            (FValTp float_t) => StatusError $ Err_StackTypeError "IBinOp applied to Float")
+        case (decEq vt vt') of
+             (Yes prf) => case machineType vt of
+                               case_val => ?rhs_1 --let res = applyI32BinOp bits bits' op in ?rhs
+             (No contra) => StatusError $ Err_StackTypeError "BinOp applied to different types"
 
     oneStepIBinOp _ ((StVal _) :: (_ :: xs)) _ _ _ = ?oneStepIBinOp_rhs_7
     oneStepIBinOp _ _ _ _ _ = ?oneStepIBinOp_rhs_5

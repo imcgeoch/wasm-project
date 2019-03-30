@@ -74,7 +74,7 @@ mutual
     oneStepIBinOp config ((StVal (AConst vt bits)) :: ((StVal (AConst vt' bits')) :: xs)) expr op width =
         case (decEq vt vt') of
              (Yes prf) => case machineType vt of
-                               case_val => ?rhs_1 --let res = applyI32BinOp bits bits' op in ?rhs
+                               case_val => ?rhs_1
              (No contra) => StatusError $ Err_StackTypeError "BinOp applied to different types"
 
     oneStepIBinOp _ ((StVal _) :: (_ :: xs)) _ _ _ = ?oneStepIBinOp_rhs_7

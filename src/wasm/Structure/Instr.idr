@@ -127,7 +127,7 @@ mutual
                          | F64DemoteF32
                          | FConvertI     (FloatType w) (IntType   w) Sign
                          | IReinterpretF (IntType   w) (FloatType w)
-                         | FReinterpretI (FloatType w) (IntType   w) 
+                         | FReinterpretI (FloatType w) (IntType   w)
                          | ParamInstr ParametricInstr
                          | VarInstr  VariableInstr
 

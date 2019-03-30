@@ -24,7 +24,7 @@ data FloatType : Width -> Type where
 data PackedType = Packed8
                 | Packed16
                 | Packed32
-    
+
 %name PackedType pack_t
 
 ||| ValType: Basic machine types
@@ -149,3 +149,60 @@ mems = filter (\x => case x of ExtMemTp arg => True
 globals : Vect n ExternType -> (m ** Vect m ExternType)
 globals = filter (\x => case x of ExtGlobalTp arg => True
                                   _             => False)
+
+--------------------------------------------------------------------------------
+----                               INTERFACES                               ----
+--------------------------------------------------------------------------------
+
+Eq Width where
+    W32 == W32 = True
+    W64 == W64 = True
+    _ == _     = False
+
+Eq (IntType w) where
+    _ == _ = True
+
+Eq (FloatType w) where
+    _ == _ = True
+
+Eq ValType where
+    (IValTp (ITp w)) == (IValTp (ITp w')) = w == w'
+    (FValTp (FTp w)) == (FValTp (FTp w')) = w == w'
+    _ == _ = False
+
+w32NotW64 : (W32 = W64) -> Void
+w32NotW64 Refl impossible
+
+implementation DecEq Width where
+    decEq W32 W32 = Yes Refl
+    decEq W64 W64 = Yes Refl
+    decEq W32 W64 = No w32NotW64
+    decEq W64 W32 = No (negEqSym w32NotW64)
+
+implementation DecEq (IntType w) where
+    decEq (ITp w) (ITp w) = Yes Refl
+
+implementation DecEq (FloatType w) where
+    decEq (FTp w) (FTp w) = Yes Refl
+
+iVal32NotIVal64 : (IValTp (ITp W32) = IValTp (ITp W64)) -> Void
+iVal32NotIVal64 Refl impossible
+
+
+iValNotFVal : (IValTp int_t = FValTp float_t) -> Void
+iValNotFVal Refl impossible
+
+fVal32NotFVal64 : (FValTp (FTp W32) = FValTp (FTp W64)) -> Void
+fVal32NotFVal64 Refl impossible
+
+implementation DecEq ValType where
+    decEq (IValTp (ITp W32)) (IValTp (ITp W32)) = Yes Refl
+    decEq (IValTp (ITp W32)) (IValTp (ITp W64)) = No iVal32NotIVal64
+    decEq (IValTp (ITp W64)) (IValTp (ITp W32)) = No (negEqSym iVal32NotIVal64)
+    decEq (IValTp (ITp W64)) (IValTp (ITp W64)) = Yes Refl
+    decEq (FValTp (FTp W32)) (FValTp (FTp W32)) = Yes Refl
+    decEq (FValTp (FTp W32)) (FValTp (FTp W64)) = No fVal32NotFVal64
+    decEq (FValTp (FTp W64)) (FValTp (FTp W32)) = No (negEqSym fVal32NotFVal64)
+    decEq (FValTp (FTp W64)) (FValTp (FTp W64)) = Yes Refl
+    decEq (IValTp int_t) (FValTp float_t) = No iValNotFVal
+    decEq (FValTp float_t) (IValTp int_t) = No (negEqSym iValNotFVal)

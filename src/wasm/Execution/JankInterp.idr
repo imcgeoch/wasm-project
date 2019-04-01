@@ -68,20 +68,22 @@ mutual
 
     oneStepFUnOp : Config l -> Stack m -> ExecExpr n -> FUnaryOp -> Width -> InterpStatus
 
-    oneStepIBinOp : Config l -> Stack m -> ExecExpr n -> IBinaryOp -> Width -> InterpStatus
-    oneStepIBinOp _ []        _ _ _ = StatusError $ Err_StackUnderflow "IBinOp applied to empty stack"
-    oneStepIBinOp _ (x :: []) _ _ _ = StatusError $ Err_StackUnderflow "IBinOp applied to size-1 stack"
-    oneStepIBinOp config ((StVal (AConst vt bits)) :: ((StVal (AConst vt' bits')) :: xs)) expr op width =
-        case (decEq vt vt') of
-             (Yes Refl) => case vt' of
+    oneStepIBinOp : Stack (S m) -> IBinaryOp -> Either (InterpError) (Stack m) 
+    -- oneStepIBinOp [] _ 
+    --       = Left $ Err_StackUnderflow "IBinOp applied to empty stack"
+    oneStepIBinOp (x :: []) _ 
+           = Left $ Err_StackUnderflow "IBinOp applied to size-1 stack"
+    oneStepIBinOp ((StVal (AConst vt bits)) :: ((StVal (AConst vt' bits')) :: xs)) expr 
+           =  case (decEq vt vt') of
+                (Yes Refl) => case vt' of
                                (IValTp (ITp W32)) => ?rhs_1 
                                (IValTp (ITp W64)) => ?rhs_4
                                (FValTp (FTp W32)) => ?rhs_3
                                (FValTp (FTp W64)) => ?rhs_5
-             (No contra) => StatusError $ Err_StackTypeError "BinOp applied to different types"
+                (No contra) => Left $ Err_StackTypeError "BinOp applied to different types"
 
-    oneStepIBinOp _ ((StVal _) :: (_ :: xs)) _ _ _ = ?oneStepIBinOp_rhs_7
-    oneStepIBinOp _ _ _ _ _ = ?oneStepIBinOp_rhs_5
+    oneStepIBinOp ((StVal _) :: (_ :: xs)) _ = ?oneStepIBinOp_rhs_7
+    oneStepIBinOp _ _ = ?oneStepIBinOp_rhs_5
 
     -- TODO: We need to add a div-by-zero error and a Bits32-Not-0 type that we can pass in
     partial

@@ -73,8 +73,11 @@ mutual
     oneStepIBinOp _ (x :: []) _ _ _ = StatusError $ Err_StackUnderflow "IBinOp applied to size-1 stack"
     oneStepIBinOp config ((StVal (AConst vt bits)) :: ((StVal (AConst vt' bits')) :: xs)) expr op width =
         case (decEq vt vt') of
-             (Yes prf) => case machineType vt of
-                               case_val => ?rhs_1
+             (Yes prf) => case vt of
+                               (IValTp (ITp W32)) => ?rhs_1 
+                               (IValTp (ITp W64)) => ?rhs_4
+                               (FValTp (FTp W32)) => ?rhs_3
+                               (FValTp (FTp W64)) => ?rhs_5
              (No contra) => StatusError $ Err_StackTypeError "BinOp applied to different types"
 
     oneStepIBinOp _ ((StVal _) :: (_ :: xs)) _ _ _ = ?oneStepIBinOp_rhs_7
@@ -99,6 +102,7 @@ mutual
     applyI32BinOp top nxt Rotr = ?applyI32BinOp_rhs_13
 
     oneStepFBinOp : Config l -> Stack m -> ExecExpr n -> FBinaryOp -> Width -> InterpStatus
+    oneStepFBinOp config stack expr op width = ?oneStepFBinOp_rhs
 
     oneStepITest : Config l -> Stack m -> ExecExpr n -> ITestOp -> Width -> InterpStatus
 

@@ -73,10 +73,15 @@ mutual
     --       = Left $ Err_StackUnderflow "IBinOp applied to empty stack"
     oneStepIBinOp (x :: []) _ 
            = Left $ Err_StackUnderflow "IBinOp applied to size-1 stack"
-    oneStepIBinOp ((StVal (AConst vt bits)) :: ((StVal (AConst vt' bits')) :: xs)) expr 
+    oneStepIBinOp ((StVal (AConst vt bits)) :: ((StVal (AConst vt' bits')) :: xs)) op 
            =  case (decEq vt vt') of
                 (Yes Refl) => case vt' of
-                               (IValTp (ITp W32)) => ?rhs_1 
+                               (IValTp (ITp W32)) => 
+                                    (case applyI32BinOp bits bits' op of
+                                         Right bits'' =>
+                                               let x = StVal (AConst (IValTp (ITp W32)) bits'') in 
+                                                 Right (x :: xs)
+                                         Left err => Left err)
                                (IValTp (ITp W64)) => ?rhs_4
                                (FValTp (FTp W32)) => ?rhs_3
                                (FValTp (FTp W64)) => ?rhs_5
@@ -87,12 +92,12 @@ mutual
 
     -- TODO: We need to add a div-by-zero error and a Bits32-Not-0 type that we can pass in
     partial
-    applyI32BinOp : Bits32 -> Bits32 -> IBinaryOp -> Bits32
-    applyI32BinOp top nxt IAdd = prim__addB32 nxt top
-    applyI32BinOp top nxt ISub = prim__subB32 nxt top
-    applyI32BinOp top nxt IMul = prim__mulB32 nxt top
-    applyI32BinOp top nxt (IDiv Signed) = prim__sdivB32 nxt top
-    applyI32BinOp top nxt (IDiv Unsigned) = prim__udivB32 nxt top
+    applyI32BinOp : Bits32 -> Bits32 -> IBinaryOp -> Either InterpError Bits32
+    applyI32BinOp top nxt IAdd = Right $ prim__addB32 nxt top
+    applyI32BinOp top nxt ISub = Right $ prim__subB32 nxt top
+    applyI32BinOp top nxt IMul = Right $ prim__mulB32 nxt top
+    applyI32BinOp top nxt (IDiv Signed) = ?div_rhs -- prim__sdivB32 nxt top
+    applyI32BinOp top nxt (IDiv Unsigned) = ?udiv_rhs  -- prim__udivB32 nxt top
     applyI32BinOp top nxt (IRem Signed) = ?applyI32BinOp_rhs_3
     applyI32BinOp top nxt (IRem Unsigned) = ?applyI32BinOp_rhs_4
     applyI32BinOp top nxt And = ?applyI32BinOp_rhs_7

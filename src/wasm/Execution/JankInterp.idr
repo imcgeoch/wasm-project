@@ -83,8 +83,7 @@ mutual
                                                  Right (x :: xs)
                                          Left err => Left err)
                                (IValTp (ITp W64)) => ?rhs_4
-                               (FValTp (FTp W32)) => ?rhs_3
-                               (FValTp (FTp W64)) => ?rhs_5
+                               _  => Left $ Err_InvalidInstruction "Float operation applied to Int" 
                 (No contra) => Left $ Err_StackTypeError "BinOp applied to different types"
 
     oneStepIBinOp ((StVal _) :: (_ :: xs)) _ = ?oneStepIBinOp_rhs_7
@@ -108,6 +107,9 @@ mutual
     applyI32BinOp top nxt (Shr sx) = ?applyI32BinOp_rhs_11
     applyI32BinOp top nxt Rotl = ?applyI32BinOp_rhs_12
     applyI32BinOp top nxt Rotr = ?applyI32BinOp_rhs_13
+
+    applyI64BinOp : Bits64 -> Bits64 -> IBinaryOp -> Either InterpError Bits64
+    applyI64BinOp _ _ = ?applyI64BinOp_rhs
 
     oneStepFBinOp : Stack (S m) -> FBinaryOp -> Either (InterpError) (Stack m)
 

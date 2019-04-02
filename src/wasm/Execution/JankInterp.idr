@@ -61,12 +61,12 @@ mutual
     oneStepConst : Config l -> Stack m -> ExecExpr n -> Constant vt val -> InterpStatus
     oneStepConst config stack expr (AConst vt val) = ?oneStepConst_rhs_1
 
-    oneStepIUnOp : Config l -> Stack m -> ExecExpr n -> IUnaryOp -> Width -> InterpStatus
-    oneStepIUnOp config stack expr Clz width = ?oneStepIUnOp_rhs_1
-    oneStepIUnOp config stack expr Ctz width = ?oneStepIUnOp_rhs_2
-    oneStepIUnOp config stack expr Popcnt width = ?oneStepIUnOp_rhs_3
+    oneStepIUnOp : Stack m -> IUnaryOp -> Either (InterpError) (Stack m) 
+    oneStepIUnOp stack Clz = ?oneStepIUnOp_rhs_1
+    oneStepIUnOp stack Ctz = ?oneStepIUnOp_rhs_2
+    oneStepIUnOp stack Popcnt = ?oneStepIUnOp_rhs_3
 
-    oneStepFUnOp : Config l -> Stack m -> ExecExpr n -> FUnaryOp -> Width -> InterpStatus
+    oneStepFUnOp : Stack m -> FUnaryOp -> Either (InterpError) (Stack m) 
 
     oneStepIBinOp : Stack (S m) -> IBinaryOp -> Either (InterpError) (Stack m) 
     -- oneStepIBinOp [] _ 
@@ -90,13 +90,14 @@ mutual
     oneStepIBinOp ((StVal _) :: (_ :: xs)) _ = ?oneStepIBinOp_rhs_7
     oneStepIBinOp _ _ = ?oneStepIBinOp_rhs_5
 
+
     -- TODO: We need to add a div-by-zero error and a Bits32-Not-0 type that we can pass in
     partial
     applyI32BinOp : Bits32 -> Bits32 -> IBinaryOp -> Either InterpError Bits32
     applyI32BinOp top nxt IAdd = Right $ prim__addB32 nxt top
     applyI32BinOp top nxt ISub = Right $ prim__subB32 nxt top
     applyI32BinOp top nxt IMul = Right $ prim__mulB32 nxt top
-    applyI32BinOp top nxt (IDiv Signed) = ?div_rhs -- prim__sdivB32 nxt top
+    applyI32BinOp top nxt (IDiv Signed) = ?sdiv_rhs 
     applyI32BinOp top nxt (IDiv Unsigned) = ?udiv_rhs  -- prim__udivB32 nxt top
     applyI32BinOp top nxt (IRem Signed) = ?applyI32BinOp_rhs_3
     applyI32BinOp top nxt (IRem Unsigned) = ?applyI32BinOp_rhs_4
@@ -108,8 +109,9 @@ mutual
     applyI32BinOp top nxt Rotl = ?applyI32BinOp_rhs_12
     applyI32BinOp top nxt Rotr = ?applyI32BinOp_rhs_13
 
-    oneStepFBinOp : Config l -> Stack m -> ExecExpr n -> FBinaryOp -> Width -> InterpStatus
-    oneStepFBinOp config stack expr op width = ?oneStepFBinOp_rhs
+    oneStepFBinOp : Stack (S m) -> FBinaryOp -> Either (InterpError) (Stack m)
+
+    applyF32BinOp : Bits32 -> Bits32 -> FBinaryOp -> Either InterpError Bits32
 
     oneStepITest : Config l -> Stack m -> ExecExpr n -> ITestOp -> Width -> InterpStatus
 

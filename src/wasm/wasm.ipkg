@@ -10,3 +10,5 @@ modules = Structure.Indices
 
         , Execution.Runtime
         , Execution.JankInterp
+
+        , Util.BitUtil

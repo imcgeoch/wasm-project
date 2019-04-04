@@ -61,29 +61,29 @@ mutual
     oneStepConst : Config l -> Stack m -> ExecExpr n -> Constant vt val -> InterpStatus
     oneStepConst config stack expr (AConst vt val) = ?oneStepConst_rhs_1
 
-    oneStepIUnOp : Stack m -> IUnaryOp -> Either (InterpError) (Stack m) 
+    oneStepIUnOp : Stack m -> IUnaryOp -> Either (InterpError) (Stack m)
     oneStepIUnOp stack Clz = ?oneStepIUnOp_rhs_1
     oneStepIUnOp stack Ctz = ?oneStepIUnOp_rhs_2
     oneStepIUnOp stack Popcnt = ?oneStepIUnOp_rhs_3
 
-    oneStepFUnOp : Stack m -> FUnaryOp -> Either (InterpError) (Stack m) 
+    oneStepFUnOp : Stack m -> FUnaryOp -> Either (InterpError) (Stack m)
 
-    oneStepIBinOp : Stack (S m) -> IBinaryOp -> Either (InterpError) (Stack m) 
-    -- oneStepIBinOp [] _ 
+    oneStepIBinOp : Stack (S m) -> IBinaryOp -> Either (InterpError) (Stack m)
+    -- oneStepIBinOp [] _
     --       = Left $ Err_StackUnderflow "IBinOp applied to empty stack"
-    oneStepIBinOp (x :: []) _ 
+    oneStepIBinOp (x :: []) _
            = Left $ Err_StackUnderflow "IBinOp applied to size-1 stack"
-    oneStepIBinOp ((StVal (AConst vt bits)) :: ((StVal (AConst vt' bits')) :: xs)) op 
+    oneStepIBinOp ((StVal (AConst vt bits)) :: ((StVal (AConst vt' bits')) :: xs)) op
            =  case (decEq vt vt') of
                 (Yes Refl) => case vt' of
-                               (IValTp (ITp W32)) => 
+                               (IValTp (ITp W32)) =>
                                     (case applyI32BinOp bits bits' op of
                                          Right bits'' =>
-                                               let x = StVal (AConst (IValTp (ITp W32)) bits'') in 
+                                               let x = StVal (AConst (IValTp (ITp W32)) bits'') in
                                                  Right (x :: xs)
                                          Left err => Left err)
                                (IValTp (ITp W64)) => ?rhs_4
-                               _  => Left $ Err_InvalidInstruction "Float operation applied to Int" 
+                               _  => Left $ Err_InvalidInstruction "Float operation applied to Int"
                 (No contra) => Left $ Err_StackTypeError "BinOp applied to different types"
 
     oneStepIBinOp ((StVal _) :: (_ :: xs)) _ = ?oneStepIBinOp_rhs_7
@@ -96,7 +96,7 @@ mutual
     applyI32BinOp top nxt IAdd = Right $ prim__addB32 nxt top
     applyI32BinOp top nxt ISub = Right $ prim__subB32 nxt top
     applyI32BinOp top nxt IMul = Right $ prim__mulB32 nxt top
-    applyI32BinOp top nxt (IDiv Signed) = ?sdiv_rhs 
+    applyI32BinOp top nxt (IDiv Signed) = ?sdiv_rhs
     applyI32BinOp top nxt (IDiv Unsigned) = ?udiv_rhs  -- prim__udivB32 nxt top
     applyI32BinOp top nxt (IRem Signed) = ?applyI32BinOp_rhs_3
     applyI32BinOp top nxt (IRem Unsigned) = ?applyI32BinOp_rhs_4

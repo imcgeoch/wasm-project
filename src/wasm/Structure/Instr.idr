@@ -29,7 +29,7 @@ mutual
                -- Int Test instructions
                | ITest    ITestOp        Width
                -- Int Relational Ops
-               | IRel     IRelationalOp  Width 
+               | IRel     IRelationalOp  Width
                | FRel     FRelationalOp  Width
                -- Conversion Instructions
                | ConvInstr ConversionInstr

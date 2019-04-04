@@ -61,14 +61,14 @@ mutual
     oneStepConst : Config l -> Stack m -> ExecExpr n -> Constant vt val -> InterpStatus
     oneStepConst config stack expr (AConst vt val) = ?oneStepConst_rhs_1
 
-    oneStepIUnOp : Stack m -> IUnaryOp -> Either (InterpError) (Stack m)
+    oneStepIUnOp : Stack m -> IUnaryOp -> Either InterpError (Stack m)
     oneStepIUnOp stack Clz = ?oneStepIUnOp_rhs_1
     oneStepIUnOp stack Ctz = ?oneStepIUnOp_rhs_2
     oneStepIUnOp stack Popcnt = ?oneStepIUnOp_rhs_3
 
-    oneStepFUnOp : Stack m -> FUnaryOp -> Either (InterpError) (Stack m)
+    oneStepFUnOp : Stack m -> FUnaryOp -> Either InterpError (Stack m)
 
-    oneStepIBinOp : Stack (S m) -> IBinaryOp -> Either (InterpError) (Stack m)
+    oneStepIBinOp : Stack (S m) -> IBinaryOp -> Either InterpError (Stack m)
     -- oneStepIBinOp [] _
     --       = Left $ Err_StackUnderflow "IBinOp applied to empty stack"
     oneStepIBinOp (x :: []) _

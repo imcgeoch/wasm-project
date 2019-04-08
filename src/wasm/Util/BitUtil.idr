@@ -3,6 +3,9 @@ module BitUtil
 import Data.Bits
 import Data.Fin
 
+%access public export
+%default total
+
 clz : Bits (S k) -> Nat
 clz {k} bits = let lastFin : Fin (S k) = last in
                    case getBit lastFin bits of

@@ -4,6 +4,7 @@ module Execution.JankInterp
 import Execution.Runtime
 import Structure.Instr
 import Structure.Types
+import Util.BitUtil
 import Data.Vect
 import Data.Bits
 
@@ -62,9 +63,17 @@ mutual
     oneStepConst config stack expr (AConst vt val) = ?oneStepConst_rhs_1
 
     oneStepIUnOp : Stack m -> IUnaryOp -> Either InterpError (Stack m)
-    oneStepIUnOp stack Clz = ?oneStepIUnOp_rhs_1
-    oneStepIUnOp stack Ctz = ?oneStepIUnOp_rhs_2
-    oneStepIUnOp stack Popcnt = ?oneStepIUnOp_rhs_3
+    oneStepIUnOp [] _           = Left (Err_StackUnderflow "Unop on empty stack")
+    oneStepIUnOp ((StLabel x) :: xs) _ = Left $ Err_InvalidInstruction "insert pun here"
+    oneStepIUnOp ((StFrame x) :: xs) _ = Left $ Err_InvalidInstruction ""
+    oneStepIUnOp ((StVal (AConst vt bits)) :: xs) op =
+        case op of
+             Clz => (case vt of
+                          (IValTp (ITp W32)) => ?rhs_1
+                          (IValTp (ITp W64)) => ?rhs_7
+                          (FValTp float_t) => Left (Err_StackTypeError "IUnOp CLZ applied to float"))
+             Ctz => ?rhs_2
+             Popcnt => ?rhs_3
 
     oneStepFUnOp : Stack m -> FUnaryOp -> Either InterpError (Stack m)
 

@@ -6,21 +6,31 @@ import Data.Fin
 %access public export
 %default total
 
-clz : Bits (S k) -> Nat
-clz {k} bits = let lastFin : Fin (S k) = last in
-                   case getBit lastFin bits of
-                        False => ?clz_rhs_1
-                        True => (S k) `minus` (the Nat (cast lastFin))
+natToBits32 : Nat -> Bits32
+natToBits32 n = prim__zextInt_B32 $ toIntNat n
 
-ctz' : (bits : Bits (S k)) -> Fin (S k) -> Nat
-ctz' {k} bits fin = case getBit fin bits of
-                     True  => cast fin                          -- Found a 1
-                     False => (let val = the Nat (cast fin) in  -- Found a 0
-                               let val' : Maybe (Fin (S k)) = natToFin (S val) (S k) in
-                                  (case val' of
-                                        Nothing => (S k)
-                                        (Just fin') => ctz' bits fin'))
+clz' : List Char -> Nat
+clz' xs = length $ takeWhile (\c => c == '0') xs
 
-ctz : Bits (S k) -> Nat
-ctz {k} bits = ctz' bits (the (Fin (S k)) FZ)
+clz32 : Bits32 -> Bits32
+clz32 x = let chars = unpack $ b32ToBinString x in
+              natToBits32 $ clz' chars
 
+clz64 : Bits64 ->  Bits32
+clz64 x = let chars = unpack $ b64ToBinString x in
+              natToBits32 (clz' chars)
+
+ctz32 : Bits32 ->  Bits32
+ctz32 x = natToBits32 (clz' $ reverse (unpack $ b32ToBinString x))
+
+ctz64 : Bits64 ->  Bits32
+ctz64 x = natToBits32 (clz' $ reverse (unpack $ b64ToBinString x))
+
+countOnes' : List Char -> Nat
+countOnes' xs = length $ filter (\x => x == '1') xs
+
+countOnes32 : Bits32 -> Bits32
+countOnes32 x = natToBits32 (countOnes' (unpack $ b32ToBinString x))
+
+countOnes64 : Bits64 -> Bits32
+countOnes64 x = natToBits32 (countOnes' (unpack $ b64ToBinString x))

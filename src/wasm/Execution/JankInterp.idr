@@ -69,10 +69,18 @@ mutual
     oneStepIUnOp ((StVal (AConst vt bits)) :: xs) op =
         case op of
              Clz => (case vt of
-                          (IValTp (ITp W32)) => ?rhs_1
-                          (IValTp (ITp W64)) => ?rhs_7
+                          (IValTp (ITp W32)) => let top : Bits32 = clz32 bits in
+                                                    Right $ (StVal (AConst (IValTp (ITp W32)) top)) :: xs
+                          (IValTp (ITp W64)) => let top : Bits32 = clz64 bits in
+                                                    Right $ (StVal (AConst (IValTp (ITp W32)) top)) :: xs
                           (FValTp float_t) => Left (Err_StackTypeError "IUnOp CLZ applied to float"))
-             Ctz => ?rhs_2
+             Ctz => (case vt of
+                          (IValTp (ITp W32)) => let top : Bits32 = ctz32 bits in
+                                                    Right $ (StVal (AConst (IValTp (ITp W32)) top)) :: xs
+                          (IValTp (ITp W64)) => let top : Bits32 = ctz64 bits in
+                                                    Right $ (StVal (AConst (IValTp (ITp W32)) top)) :: xs
+                          (FValTp float_t) => Left (Err_StackTypeError "IUnOp CTZ applied to float"))
+
              Popcnt => ?rhs_3
 
     oneStepFUnOp : Stack m -> FUnaryOp -> Either InterpError (Stack m)

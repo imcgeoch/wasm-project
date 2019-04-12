@@ -123,7 +123,7 @@ mutual
     applyI32BinOp top nxt ISub = Right $ prim__subB32 nxt top
     applyI32BinOp top nxt IMul = Right $ prim__mulB32 nxt top
     applyI32BinOp top nxt (IDiv Signed) = ?sdiv_rhs
-    applyI32BinOp top nxt (IDiv Unsigned) = ?udiv_rhs  -- prim__udivB32 nxt top
+    applyI32BinOp top nxt (IDiv Unsigned) = ?udiv_rhs
     applyI32BinOp top nxt (IRem Signed) = ?applyI32BinOp_rhs_3
     applyI32BinOp top nxt (IRem Unsigned) = ?applyI32BinOp_rhs_4
     applyI32BinOp top nxt And = ?applyI32BinOp_rhs_7
@@ -135,7 +135,20 @@ mutual
     applyI32BinOp top nxt Rotr = ?applyI32BinOp_rhs_13
 
     applyI64BinOp : Bits64 -> Bits64 -> IBinaryOp -> Either InterpError Bits64
-    applyI64BinOp _ _ = ?applyI64BinOp_rhs
+    applyI64BinOp top nxt IAdd = Right $ prim__addB64 nxt top
+    applyI64BinOp top nxt ISub = Right $ prim__subB64 nxt top
+    applyI64BinOp top nxt IMul = Right $ prim__mulB64 nxt top
+    applyI64BinOp top nxt (IDiv Signed) = ?sdiv_rhs
+    applyI64BinOp top nxt (IDiv Unsigned) = ?udiv_rhs
+    applyI64BinOp top nxt (IRem Signed) = ?applyI32BinOp_rhs_3
+    applyI64BinOp top nxt (IRem Unsigned) = ?applyI32BinOp_rhs_4
+    applyI64BinOp top nxt And = ?applyI32BinOp_rhs_7
+    applyI64BinOp top nxt Or = ?applyI32BinOp_rhs_8
+    applyI64BinOp top nxt Xor = ?applyI32BinOp_rhs_9
+    applyI64BinOp top nxt Shl = ?applyI32BinOp_rhs_10
+    applyI64BinOp top nxt (Shr sx) = ?applyI32BinOp_rhs_11
+    applyI64BinOp top nxt Rotl = ?applyI32BinOp_rhs_12
+    applyI64BinOp top nxt Rotr = ?applyI32BinOp_rhs_13
 
     {-
     oneStepFBinOp : Stack (S m) -> FBinaryOp -> Either (InterpError) (Stack m)

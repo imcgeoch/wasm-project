@@ -51,14 +51,14 @@ mutual
     oneStepInstr config stack expr (Const constant) = ?oneStepInstr_rhs_1
     oneStepInstr config stack expr (IUnOp op w) = ?oneStepInstr_rhs_2
     oneStepInstr config stack expr (FUnOp op w) = ?oneStepInstr_rhs_3
-    oneStepInstr config stack expr (IBinOp op _) = 
+    oneStepInstr config stack expr instr@(IBinOp op _) = 
         case stack of
             [] => ?empty
             x :: [] => ?one_thing
             x :: y :: xs => 
                 case (oneStepIBinOp stack op) of
-                    Left err => ?arsarst
-                    Right s => ?status_running_interp
+                    Left err => MkInterp config stack ((Ins instr) :: expr) (StatusError $ err)
+                    Right s => MkInterp config s expr StatusRunning
     oneStepInstr config stack expr (FBinOp op w) = ?oneStepInstr_rhs_5
     oneStepInstr config stack expr (ITest op w) = ?oneStepInstr_rhs_6
     oneStepInstr config stack expr (IRel op w) = ?oneStepInstr_rhs_7

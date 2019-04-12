@@ -29,25 +29,25 @@ record Interp where
     config : Config n
     stack  : Stack m
     expr   : ExecExpr k
-    -- status : InterpStatus
+    status : InterpStatus
 
 -- TODO: It might be useful to pass along a reference to the interp that we
 -- tried to execute on
 
 mutual
     ||| Make a single small-step reduction
-    oneStep : (interp : Interp) -> InterpStatus
-    oneStep (MkInterp config stack expr) = oneStep' config stack expr
+    oneStep : (interp : Interp) -> Interp
+    oneStep (MkInterp config stack expr status) = oneStep' config stack expr
 
-    oneStep' : Config l -> Stack m -> ExecExpr n -> InterpStatus
-    oneStep' config stack [] = StatusSuccess
+    oneStep' : Config l -> Stack m -> ExecExpr n -> Interp
+    oneStep' config stack [] = ?status_success_rhs
     oneStep' config stack ((Ins   instr) :: expr) = oneStepInstr config stack expr instr
     oneStep' config stack ((AdIns instr) :: expr) = oneStepAdmin config stack expr instr
 
-    oneStepAdmin : Config l -> Stack m -> ExecExpr n -> AdminInstr -> InterpStatus
+    oneStepAdmin : Config l -> Stack m -> ExecExpr n -> AdminInstr -> Interp
 
     total
-    oneStepInstr : Config l -> Stack m -> ExecExpr n -> Instr -> InterpStatus
+    oneStepInstr : Config l -> Stack m -> ExecExpr n -> Instr -> Interp
     oneStepInstr config stack expr (Const constant) = ?oneStepInstr_rhs_1
     oneStepInstr config stack expr (IUnOp op w) = ?oneStepInstr_rhs_2
     oneStepInstr config stack expr (FUnOp op w) = ?oneStepInstr_rhs_3
@@ -58,7 +58,7 @@ mutual
             x :: y :: xs => 
                 case (oneStepIBinOp stack op) of
                     Left err => ?arsarst
-                    Right s => StatusRunning
+                    Right s => ?status_running_interp
     oneStepInstr config stack expr (FBinOp op w) = ?oneStepInstr_rhs_5
     oneStepInstr config stack expr (ITest op w) = ?oneStepInstr_rhs_6
     oneStepInstr config stack expr (IRel op w) = ?oneStepInstr_rhs_7
@@ -67,7 +67,7 @@ mutual
     oneStepInstr config stack expr (MemInstr mem) = ?oneStepInstr_rhs_10
     oneStepInstr config stack expr (ContInstr cont) = ?oneStepInstr_rhs_11
 
-    oneStepConst : Config l -> Stack m -> ExecExpr n -> Constant vt val -> InterpStatus
+    oneStepConst : Config l -> Stack m -> ExecExpr n -> Constant vt val -> Interp
     oneStepConst config stack expr (AConst vt val) = ?oneStepConst_rhs_1
 
     oneStepIUnOp : Stack m -> IUnaryOp -> Either InterpError (Stack m)
@@ -134,6 +134,7 @@ mutual
     applyI64BinOp : Bits64 -> Bits64 -> IBinaryOp -> Either InterpError Bits64
     applyI64BinOp _ _ = ?applyI64BinOp_rhs
 
+    {-
     oneStepFBinOp : Stack (S m) -> FBinaryOp -> Either (InterpError) (Stack m)
 
     applyF32BinOp : Bits32 -> Bits32 -> FBinaryOp -> Either InterpError Bits32
@@ -149,3 +150,4 @@ mutual
     oneStepMemInstr : Config l -> Stack m -> ExecExpr n -> MemoryInstr -> InterpStatus
 
     oneStepContInstr : Config l -> Stack m -> ExecExpr n -> ControlInstr -> InterpStatus
+    -}

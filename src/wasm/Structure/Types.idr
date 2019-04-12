@@ -9,7 +9,7 @@ import Data.Vect
 -- Definitions from https://webassembly.github.io/spec/core/syntax/types.html
 data Width = W32 | W64
 
-%name Width width
+%name Width w
 
 data IntType : Width -> Type where
     ITp : (w : Width) -> IntType w

@@ -94,8 +94,6 @@ mutual
     oneStepFUnOp : Stack m -> FUnaryOp -> Either InterpError (Stack m)
 
     oneStepIBinOp : Stack (S (S m)) -> IBinaryOp -> Either InterpError (Stack (S m))
-    -- oneStepIBinOp (x :: []) _
-    --        = Left $ Err_StackUnderflow "IBinOp applied to size-1 stack"
     oneStepIBinOp ((StVal (AConst vt bits)) :: ((StVal (AConst vt' bits')) :: xs)) op
            =  case (decEq vt vt') of
                 (Yes Refl) => case vt' of
@@ -105,12 +103,17 @@ mutual
                                                let x = StVal (AConst (IValTp (ITp W32)) bits2) in
                                                  Right (x :: xs)
                                          Left err => Left err)
-                               (IValTp (ITp W64)) => ?rhs_4
+                               (IValTp (ITp W64)) =>
+                                   (case applyI64BinOp bits bits' op of
+                                         Right bits2 =>
+                                               let x = StVal (AConst (IValTp (ITp W64)) bits2) in
+                                                 Right (x :: xs)
+                                         Left err => Left err)
                                _  => Left $ Err_InvalidInstruction "Float operation applied to Int"
                 (No contra) => Left $ Err_StackTypeError "BinOp applied to different types"
 
-    oneStepIBinOp ((StVal _) :: (_ :: xs)) _ = ?oneStepIBinOp_rhs_7
-    oneStepIBinOp _ _ = ?oneStepIBinOp_rhs_5
+    oneStepIBinOp ((StVal _) :: (_ :: xs)) _ = Left $ Err_InvalidInstruction "Bad 1"
+    oneStepIBinOp _ _ = Left $ Err_InvalidInstruction "Bad 2"
 
 
     -- TODO: We need to add a div-by-zero error and a Bits32-Not-0 type that we can pass in

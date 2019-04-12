@@ -139,15 +139,15 @@ mutual
 
     applyF32BinOp : Bits32 -> Bits32 -> FBinaryOp -> Either InterpError Bits32
 
-    oneStepITest : Config l -> Stack m -> ExecExpr n -> ITestOp -> Width -> InterpStatus
+    oneStepITest : Config l -> Stack m -> ExecExpr n -> ITestOp -> Width -> Interp
 
-    oneStepIRel : Config l -> Stack m -> ExecExpr n -> IRelationalOp -> Width -> InterpStatus
+    oneStepIRel : Config l -> Stack m -> ExecExpr n -> IRelationalOp -> Width -> Interp
 
-    oneStepFRel : Config l -> Stack m -> ExecExpr n -> FRelationalOp -> Width -> InterpStatus
+    oneStepFRel : Config l -> Stack m -> ExecExpr n -> FRelationalOp -> Width -> Interp
 
-    oneStepConvInstr : Config l -> Stack m -> ExecExpr n -> ConversionInstr -> InterpStatus
+    oneStepConvInstr : Config l -> Stack m -> ExecExpr n -> ConversionInstr -> Interp
 
-    oneStepMemInstr : Config l -> Stack m -> ExecExpr n -> MemoryInstr -> InterpStatus
+    oneStepMemInstr : Config l -> Stack m -> ExecExpr n -> MemoryInstr -> Interp
 
-    oneStepContInstr : Config l -> Stack m -> ExecExpr n -> ControlInstr -> InterpStatus
+    oneStepContInstr : Config l -> Stack m -> ExecExpr n -> ControlInstr -> Interp
     -}

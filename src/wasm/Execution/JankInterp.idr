@@ -11,16 +11,6 @@ import Data.Bits
 %access public export
 %default total
 
-record Interp where
-    constructor MkInterp
-    config : Config n
-    stack  : Stack m
-    expr   : ExecExpr k
-
--- TODO: It might be useful to pass along a reference to the interp that we
--- tried to execute on
-
-
 data InterpError : Type where
   Err_StackUnderflow : String -> InterpError
   Err_StackTypeError : String -> InterpError
@@ -28,10 +18,21 @@ data InterpError : Type where
   Err_InvalidInstruction : String -> InterpError
 
 data InterpStatus : Type where
-  StatusRunning :  InterpStatus
-  StatusSuccess :  InterpStatus
-  StatusTrapped :  InterpStatus
-  StatusError   :  InterpError -> InterpStatus
+  StatusRunning   :  InterpStatus
+  StatusSuccess   :  InterpStatus
+  StatusTrapped   :  InterpStatus
+  StatusError     :  InterpError -> InterpStatus
+  StatusInitiated :  InterpStatus
+
+record Interp where
+    constructor MkInterp
+    config : Config n
+    stack  : Stack m
+    expr   : ExecExpr k
+    -- status : InterpStatus
+
+-- TODO: It might be useful to pass along a reference to the interp that we
+-- tried to execute on
 
 mutual
     ||| Make a single small-step reduction
@@ -48,13 +49,20 @@ mutual
     total
     oneStepInstr : Config l -> Stack m -> ExecExpr n -> Instr -> InterpStatus
     oneStepInstr config stack expr (Const constant) = ?oneStepInstr_rhs_1
-    oneStepInstr config stack expr (IUnOp op width) = ?oneStepInstr_rhs_2
-    oneStepInstr config stack expr (FUnOp op width) = ?oneStepInstr_rhs_3
-    oneStepInstr config stack expr (IBinOp op width) = ?oneStepInstr_rhs_4
-    oneStepInstr config stack expr (FBinOp op width) = ?oneStepInstr_rhs_5
-    oneStepInstr config stack expr (ITest op width) = ?oneStepInstr_rhs_6
-    oneStepInstr config stack expr (IRel op width) = ?oneStepInstr_rhs_7
-    oneStepInstr config stack expr (FRel op width) = ?oneStepInstr_rhs_8
+    oneStepInstr config stack expr (IUnOp op w) = ?oneStepInstr_rhs_2
+    oneStepInstr config stack expr (FUnOp op w) = ?oneStepInstr_rhs_3
+    oneStepInstr config stack expr (IBinOp op _) = 
+        case stack of
+            [] => ?empty
+            x :: [] => ?one_thing
+            x :: y :: xs => 
+                case (oneStepIBinOp stack op) of
+                    Left err => ?arsarst
+                    Right s => StatusRunning
+    oneStepInstr config stack expr (FBinOp op w) = ?oneStepInstr_rhs_5
+    oneStepInstr config stack expr (ITest op w) = ?oneStepInstr_rhs_6
+    oneStepInstr config stack expr (IRel op w) = ?oneStepInstr_rhs_7
+    oneStepInstr config stack expr (FRel op w) = ?oneStepInstr_rhs_8
     oneStepInstr config stack expr (ConvInstr conv) = ?oneStepInstr_rhs_9
     oneStepInstr config stack expr (MemInstr mem) = ?oneStepInstr_rhs_10
     oneStepInstr config stack expr (ContInstr cont) = ?oneStepInstr_rhs_11
@@ -85,18 +93,16 @@ mutual
 
     oneStepFUnOp : Stack m -> FUnaryOp -> Either InterpError (Stack m)
 
-    oneStepIBinOp : Stack (S m) -> IBinaryOp -> Either InterpError (Stack m)
-    -- oneStepIBinOp [] _
-    --       = Left $ Err_StackUnderflow "IBinOp applied to empty stack"
-    oneStepIBinOp (x :: []) _
-           = Left $ Err_StackUnderflow "IBinOp applied to size-1 stack"
+    oneStepIBinOp : Stack (S (S m)) -> IBinaryOp -> Either InterpError (Stack (S m))
+    -- oneStepIBinOp (x :: []) _
+    --        = Left $ Err_StackUnderflow "IBinOp applied to size-1 stack"
     oneStepIBinOp ((StVal (AConst vt bits)) :: ((StVal (AConst vt' bits')) :: xs)) op
            =  case (decEq vt vt') of
                 (Yes Refl) => case vt' of
                                (IValTp (ITp W32)) =>
                                     (case applyI32BinOp bits bits' op of
-                                         Right bits'' =>
-                                               let x = StVal (AConst (IValTp (ITp W32)) bits'') in
+                                         Right bits2 =>
+                                               let x = StVal (AConst (IValTp (ITp W32)) bits2) in
                                                  Right (x :: xs)
                                          Left err => Left err)
                                (IValTp (ITp W64)) => ?rhs_4

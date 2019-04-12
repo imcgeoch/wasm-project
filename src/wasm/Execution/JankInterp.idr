@@ -40,7 +40,7 @@ mutual
     oneStep (MkInterp config stack expr status) = oneStep' config stack expr
 
     oneStep' : Config l -> Stack m -> ExecExpr n -> Interp
-    oneStep' config stack [] = ?status_success_rhs
+    oneStep' config stack [] = MkInterp config stack [] StatusSuccess
     oneStep' config stack ((Ins   instr) :: expr) = oneStepInstr config stack expr instr
     oneStep' config stack ((AdIns instr) :: expr) = oneStepAdmin config stack expr instr
 

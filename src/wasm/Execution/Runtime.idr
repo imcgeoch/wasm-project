@@ -180,7 +180,7 @@ mutual
 
 
 ||| https://webassembly.github.io/spec/core/exec/runtime.html#stack
-data StackEntry = StVal (Constant vt bits)
+data StackEntry = StVal (Constant vt)
                 | StLabel Label
                 | StFrame Frame
 
@@ -209,23 +209,11 @@ mutual
 toExecInstr : Instr -> ExecInstr
 toExecInstr ins = Ins ins
 
-||| Convenience function to map a Vect of Instrs to a Vect n of ExecInstrs
-toExecInstrs : Vect n Instr -> Vect n ExecInstr
-toExecInstrs = map toExecInstr
-
-||| A thread is a computation over instructions that operates relative to a
-||| current frame referring to the home module instance that the computation
-||| runs in.
-|||
-||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-thread
-Thread : Nat -> Type
-Thread n = (Frame, ExecExpr n)
-
 ||| A configuration consists of the current store and an executing thread.
 |||
 ||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-config
-Config : Nat -> Type
-Config n = (Store, Thread n)
+Config : Type
+Config = Store
 
 %name Config config
 

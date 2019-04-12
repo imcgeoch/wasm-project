@@ -26,7 +26,7 @@ data InterpStatus : Type where
 
 record Interp where
     constructor MkInterp
-    config : Config n
+    config : Config
     stack  : Stack m
     expr   : ExecExpr k
     status : InterpStatus
@@ -39,16 +39,17 @@ mutual
     oneStep : (interp : Interp) -> Interp
     oneStep (MkInterp config stack expr status) = oneStep' config stack expr
 
-    oneStep' : Config l -> Stack m -> ExecExpr n -> Interp
+    oneStep' : Config -> Stack m -> ExecExpr n -> Interp
     oneStep' config stack [] = MkInterp config stack [] StatusSuccess
     oneStep' config stack ((Ins   instr) :: expr) = oneStepInstr config stack expr instr
     oneStep' config stack ((AdIns instr) :: expr) = oneStepAdmin config stack expr instr
 
-    oneStepAdmin : Config l -> Stack m -> ExecExpr n -> AdminInstr -> Interp
+    oneStepAdmin : Config -> Stack m -> ExecExpr n -> AdminInstr -> Interp
 
     total
-    oneStepInstr : Config l -> Stack m -> ExecExpr n -> Instr -> Interp
-    oneStepInstr config stack expr (Const constant) = ?oneStepInstr_rhs_1
+    oneStepInstr : Config -> Stack m -> ExecExpr n -> Instr -> Interp
+    oneStepInstr config stack expr (Const constant) = let stack' = ((StVal constant) :: stack) in 
+                                                          MkInterp config stack' expr StatusRunning
     oneStepInstr config stack expr (IUnOp op w) = ?oneStepInstr_rhs_2
     oneStepInstr config stack expr (FUnOp op w) = ?oneStepInstr_rhs_3
     oneStepInstr config stack expr instr@(IBinOp op _) = 
@@ -67,7 +68,7 @@ mutual
     oneStepInstr config stack expr (MemInstr mem) = ?oneStepInstr_rhs_10
     oneStepInstr config stack expr (ContInstr cont) = ?oneStepInstr_rhs_11
 
-    oneStepConst : Config l -> Stack m -> ExecExpr n -> Constant vt val -> Interp
+    oneStepConst : Config -> Stack m -> ExecExpr n -> Constant vt -> Interp
     oneStepConst config stack expr (AConst vt val) = ?oneStepConst_rhs_1
 
     oneStepIUnOp : Stack m -> IUnaryOp -> Either InterpError (Stack m)
@@ -155,15 +156,15 @@ mutual
 
     applyF32BinOp : Bits32 -> Bits32 -> FBinaryOp -> Either InterpError Bits32
 
-    oneStepITest : Config l -> Stack m -> ExecExpr n -> ITestOp -> Width -> Interp
+    oneStepITest : Config -> Stack m -> ExecExpr n -> ITestOp -> Width -> Interp
 
-    oneStepIRel : Config l -> Stack m -> ExecExpr n -> IRelationalOp -> Width -> Interp
+    oneStepIRel : Config -> Stack m -> ExecExpr n -> IRelationalOp -> Width -> Interp
 
-    oneStepFRel : Config l -> Stack m -> ExecExpr n -> FRelationalOp -> Width -> Interp
+    oneStepFRel : Config -> Stack m -> ExecExpr n -> FRelationalOp -> Width -> Interp
 
-    oneStepConvInstr : Config l -> Stack m -> ExecExpr n -> ConversionInstr -> Interp
+    oneStepConvInstr : Config -> Stack m -> ExecExpr n -> ConversionInstr -> Interp
 
-    oneStepMemInstr : Config l -> Stack m -> ExecExpr n -> MemoryInstr -> Interp
+    oneStepMemInstr : Config -> Stack m -> ExecExpr n -> MemoryInstr -> Interp
 
-    oneStepContInstr : Config l -> Stack m -> ExecExpr n -> ControlInstr -> Interp
+    oneStepContInstr : Config -> Stack m -> ExecExpr n -> ControlInstr -> Interp
     -}

@@ -19,7 +19,7 @@ record MemArg where
 
 mutual
     ||| https://webassembly.github.io/spec/core/syntax/instructions.html#instructions
-    data Instr = Const    (Constant vt val)
+    data Instr = Const    (Constant vt)
                -- Unary operators
                | IUnOp    IUnaryOp       Width
                | FUnOp    FUnaryOp       Width
@@ -90,8 +90,8 @@ mutual
                        | FGe
 
     ||| Create a const of a given type
-    data Constant : (vt : ValType) -> machineType vt -> Type where
-        AConst : (vt : ValType) -> (val : machineType vt) -> Constant vt val
+    data Constant : (vt : ValType) ->  Type where
+        AConst : (vt : ValType) -> (val : machineType vt) -> Constant vt
 
     data ParametricInstr = Drop | Select
 

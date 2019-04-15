@@ -1,4 +1,4 @@
-module JankInterpTest
+module JankInterpTestHelp
 
 import Execution.JankInterp
 import Execution.Runtime

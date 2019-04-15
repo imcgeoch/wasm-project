@@ -12,3 +12,5 @@ modules = Structure.Indices
         , Execution.JankInterp
 
         , Util.BitUtil
+
+        , Tests.JankInterpTestHelp

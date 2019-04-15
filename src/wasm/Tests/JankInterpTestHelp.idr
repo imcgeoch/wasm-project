@@ -1,4 +1,4 @@
-module JankInterpTestHelp
+module Tests.JankInterpTestHelp
 
 import Execution.JankInterp
 import Execution.Runtime
@@ -6,6 +6,8 @@ import Structure.Types
 import Structure.Instr
 import Util.BitUtil
 import Data.Vect
+
+%access public export
 
 {-
 --b32_1 : Bits32
@@ -53,11 +55,13 @@ makeExpr : Vect n String -> ExecExpr n
 makeExpr [] = [] 
 makeExpr (x :: xs) = (strToIns x) :: makeExpr xs
 
+partial
 runInterp : Interp -> Interp
 runInterp interp = case interp of
                          (MkInterp config stack [] status) => interp 
                          (MkInterp config stack (x :: xs) status) => runInterp (oneStep interp) 
 
+partial
 runExpr : ExecExpr n -> Interp
 runExpr expr = let config = MkStore [] [] [] []
                    interp = MkInterp config [] expr StatusRunning in

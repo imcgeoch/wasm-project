@@ -37,3 +37,12 @@ interp2 = oneStep interp1
 interp3 : Interp
 interp3 = oneStep interp2
 
+strToIns : String -> ExecInstr
+strToIns str = case str of
+                  "clz" => Ins (IUnOp Clz W32)
+                  "ctz" => Ins (IUnOp Ctz W32) 
+                  "pop" => Ins (IUnOp Popcnt W32) 
+                  "+" => Ins (IBinOp IAdd W32) 
+                  "-" => Ins (IBinOp ISub W32)
+                  x => Ins (Const (AConst I32_t (prim__zextInt_B32 (cast x)))) -- fails silently and produces zero on bad input
+

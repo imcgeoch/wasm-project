@@ -7,6 +7,7 @@ import Structure.Instr
 import Util.BitUtil
 import Data.Vect
 
+{-
 --b32_1 : Bits32
 --b32_1 = prim__zextInt_B32 1
 
@@ -36,6 +37,7 @@ interp2 = oneStep interp1
 
 interp3 : Interp
 interp3 = oneStep interp2
+-}
 
 strToIns : String -> ExecInstr
 strToIns str = case str of
@@ -44,5 +46,20 @@ strToIns str = case str of
                   "pop" => Ins (IUnOp Popcnt W32) 
                   "+" => Ins (IBinOp IAdd W32) 
                   "-" => Ins (IBinOp ISub W32)
-                  x => Ins (Const (AConst I32_t (prim__zextInt_B32 (cast x)))) -- fails silently and produces zero on bad input
+                  -- fails silently and produces zero on bad input
+                  x => Ins (Const (AConst I32_t (prim__zextInt_B32 (cast x)))) 
+
+makeExpr : Vect n String -> ExecExpr n
+makeExpr [] = [] 
+makeExpr (x :: xs) = (strToIns x) :: makeExpr xs
+
+runInterp : Interp -> Interp
+runInterp interp = case interp of
+                         (MkInterp config stack [] status) => interp 
+                         (MkInterp config stack (x :: xs) status) => runInterp (oneStep interp) 
+
+runExpr : ExecExpr n -> Interp
+runExpr expr = let config = MkStore [] [] [] []
+                   interp = MkInterp config [] expr StatusRunning in
+                   runInterp interp 
 

@@ -7,17 +7,17 @@ import Structure.Instr
 import Util.BitUtil
 import Data.Vect
 
-b32_1 : Bits32
-b32_1 = prim__zextInt_B32 1
+--b32_1 : Bits32
+--b32_1 = prim__zextInt_B32 1
 
-b32_2 : Bits32
-b32_2 = prim__zextInt_B32 2
+--b32_2 : Bits32
+--b32_2 = prim__zextInt_B32 2
 
 const2 : Constant I32_t
-const2 = AConst I32_t b32_2
+const2 = AConst I32_t 2
 
 const1 : Constant I32_t
-const1 = AConst I32_t b32_1
+const1 = AConst I32_t 1
 
 expr : ExecExpr 3
 expr = (Ins (Const const2)) :: (Ins (Const const1)) :: (Ins (IBinOp IAdd W32)) :: []

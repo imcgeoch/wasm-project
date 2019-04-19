@@ -165,6 +165,18 @@ mutual
     oneStepConvInstr : Config -> Stack m -> ExecExpr n -> ConversionInstr -> Interp
 
     oneStepMemInstr : Config -> Stack m -> ExecExpr n -> MemoryInstr -> Interp
-
-    oneStepContInstr : Config -> Stack m -> ExecExpr n -> ControlInstr -> Interp
     -}
+
+    oneStepContInstr : Config -> Stack m -> ExecExpr n -> ControlInstr -> Interp 
+    oneStepContInstr config stack expr Nop = ?oneStepContInstr_rhs_1
+    oneStepContInstr config stack expr Unreachable = ?oneStepContInstr_rhs_2
+    oneStepContInstr config stack expr (Block x xs) = ?oneStepContInstr_rhs_3
+    oneStepContInstr config stack expr (Loop x xs) = ?oneStepContInstr_rhs_4
+    oneStepContInstr config stack expr Return = ?oneStepContInstr_rhs_6
+    oneStepContInstr config stack expr (If x thens elses) 
+       = case stack of
+          ((StVal (AConst (IValTp (ITp W32)) val)) :: xs) => 
+               let exprs = if val /= 0 then thens else ?elses in
+                   ?if_rhs
+          _ => ?error_rhs
+                             

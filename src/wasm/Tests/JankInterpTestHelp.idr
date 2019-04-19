@@ -22,7 +22,7 @@ const2 = AConst I32_t 2
 const1 : Constant I32_t
 const1 = AConst I32_t 1
 
-expr : ExecExpr 3
+expr : ExecExpr
 expr = (Ins (Const const2)) :: (Ins (Const const1)) :: (Ins (IBinOp IAdd W32)) :: []
 
 config : Config
@@ -51,7 +51,7 @@ strToIns str = case str of
                   -- fails silently and produces zero on bad input
                   x => Ins (Const (AConst I32_t (prim__zextInt_B32 (cast x)))) 
 
-makeExpr : Vect n String -> ExecExpr n
+makeExpr : Vect n String -> ExecExpr
 makeExpr [] = [] 
 makeExpr (x :: xs) = (strToIns x) :: makeExpr xs
 
@@ -62,7 +62,7 @@ runInterp interp = case interp of
                          (MkInterp config stack (x :: xs) status) => runInterp (oneStep interp) 
 
 partial
-runExpr : ExecExpr n -> Interp
+runExpr : ExecExpr -> Interp
 runExpr expr = let config = MkStore [] [] [] []
                    interp = MkInterp config [] expr StatusRunning in
                    runInterp interp 

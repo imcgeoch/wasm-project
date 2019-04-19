@@ -127,9 +127,9 @@ mutual
 
     data ControlInstr = Nop
                       | Unreachable
-                      | Block ResultType (Vect _ Instr)
-                      | Loop  ResultType (Vect _ Instr)
-                      | If    ResultType (Vect _ Instr) (Vect _ Instr)
+                      | Block ResultType Expr
+                      | Loop  ResultType Expr
+                      | If    ResultType Expr (Vect _ Instr)
                       | Br    LabelIdx
                       | BrIf  LabelIdx
                       -- TODO: br_table, the first argument (the Vect) is a `vec` type in the WASM
@@ -144,8 +144,8 @@ mutual
 
 
     ||| https://webassembly.github.io/spec/core/syntax/instructions.html#expressions
-    Expr : Nat -> Type
-    Expr n = Vect n Instr
+    Expr : Type
+    Expr = List Instr
 
 %name Instr instr
 %name Expr expr

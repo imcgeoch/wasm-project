@@ -164,7 +164,7 @@ mutual
     record Label where
         constructor MkLabel
         arity : Nat
-        cont  : Expr m
+        cont  : Expr
 
     ||| https://webassembly.github.io/spec/core/exec/runtime.html#frames
     record Activation where
@@ -200,8 +200,8 @@ mutual
 
     data ExecInstr = Ins Instr | AdIns AdminInstr
 
-    ExecExpr : Nat -> Type
-    ExecExpr n = Vect n ExecInstr
+    ExecExpr : Type
+    ExecExpr = List ExecInstr
 
     %name ExecExpr expr
 

@@ -28,7 +28,7 @@ record Interp where
     constructor MkInterp
     config : Config
     stack  : Stack m
-    expr   : ExecExpr k
+    expr   : ExecExpr
     status : InterpStatus
 
 -- TODO: It might be useful to pass along a reference to the interp that we
@@ -39,24 +39,24 @@ mutual
     oneStep : (interp : Interp) -> Interp
     oneStep (MkInterp config stack expr status) = oneStep' config stack expr
 
-    oneStep' : Config -> Stack m -> ExecExpr n -> Interp
+    oneStep' : Config -> Stack m -> ExecExpr -> Interp
     oneStep' config stack [] = MkInterp config stack [] StatusSuccess
     oneStep' config stack ((Ins   instr) :: expr) = oneStepInstr config stack expr instr
     oneStep' config stack ((AdIns instr) :: expr) = oneStepAdmin config stack expr instr
 
-    oneStepAdmin : Config -> Stack m -> ExecExpr n -> AdminInstr -> Interp
+    oneStepAdmin : Config -> Stack m -> ExecExpr -> AdminInstr -> Interp
 
     total
-    oneStepInstr : Config -> Stack m -> ExecExpr n -> Instr -> Interp
+    oneStepInstr : Config -> Stack m -> ExecExpr -> Instr -> Interp
     oneStepInstr config stack expr (Const constant) = let stack' = ((StVal constant) :: stack) in 
                                                           MkInterp config stack' expr StatusRunning
     oneStepInstr config stack expr (IUnOp op w) = ?oneStepInstr_rhs_2
     oneStepInstr config stack expr (FUnOp op w) = ?oneStepInstr_rhs_3
-    oneStepInstr config stack expr instr@(IBinOp op _) = 
+    oneStepInstr config stack expr instr@(IBinOp op _) =
         case stack of
             [] => ?empty
             x :: [] => ?one_thing
-            x :: y :: xs => 
+            x :: y :: xs =>
                 case (oneStepIBinOp stack op) of
                     Left err => MkInterp config stack ((Ins instr) :: expr) (StatusError $ err)
                     Right s => MkInterp config s expr StatusRunning
@@ -68,7 +68,7 @@ mutual
     oneStepInstr config stack expr (MemInstr mem) = ?oneStepInstr_rhs_10
     oneStepInstr config stack expr (ContInstr cont) = ?oneStepInstr_rhs_11
 
-    oneStepConst : Config -> Stack m -> ExecExpr n -> Constant vt -> Interp
+    oneStepConst : Config -> Stack m -> ExecExpr -> Constant vt -> Interp
     oneStepConst config stack expr (AConst vt val) = ?oneStepConst_rhs_1
 
     oneStepIUnOp : Stack m -> IUnaryOp -> Either InterpError (Stack m)
@@ -156,18 +156,18 @@ mutual
 
     applyF32BinOp : Bits32 -> Bits32 -> FBinaryOp -> Either InterpError Bits32
 
-    oneStepITest : Config -> Stack m -> ExecExpr n -> ITestOp -> Width -> Interp
+    oneStepITest : Config -> Stack m -> ExecExpr -> ITestOp -> Width -> Interp
 
-    oneStepIRel : Config -> Stack m -> ExecExpr n -> IRelationalOp -> Width -> Interp
+    oneStepIRel : Config -> Stack m -> ExecExpr -> IRelationalOp -> Width -> Interp
 
-    oneStepFRel : Config -> Stack m -> ExecExpr n -> FRelationalOp -> Width -> Interp
+    oneStepFRel : Config -> Stack m -> ExecExpr -> FRelationalOp -> Width -> Interp
 
-    oneStepConvInstr : Config -> Stack m -> ExecExpr n -> ConversionInstr -> Interp
+    oneStepConvInstr : Config -> Stack m -> ExecExpr -> ConversionInstr -> Interp
 
-    oneStepMemInstr : Config -> Stack m -> ExecExpr n -> MemoryInstr -> Interp
+    oneStepMemInstr : Config -> Stack m -> ExecExpr -> MemoryInstr -> Interp
     -}
 
-    oneStepContInstr : Config -> Stack m -> ExecExpr n -> ControlInstr -> Interp 
+    oneStepContInstr : Config -> Stack m -> ExecExpr -> ControlInstr -> Interp 
     oneStepContInstr config stack expr Nop = ?oneStepContInstr_rhs_1
     oneStepContInstr config stack expr Unreachable = ?oneStepContInstr_rhs_2
     oneStepContInstr config stack expr (Block x xs) = ?oneStepContInstr_rhs_3

@@ -38,7 +38,7 @@ namespace modules
             constructor MkFunc
             type   : TypeIdx
             locals : Vect n ValType
-            body   : Expr m
+            body   : Expr
 
         ||| https://webassembly.github.io/spec/core/syntax/modules.html#syntax-table
         record Table where
@@ -57,7 +57,7 @@ namespace modules
         record Elem where
             constructor MkElem
             table  : TableIdx
-            offset : Expr m  -- XXX: ConstExpr
+            offset : Expr  -- XXX: ConstExpr
             init   : Vect n FuncIdx
 
         ||| https://webassembly.github.io/spec/core/syntax/modules.html#syntax-data
@@ -65,7 +65,7 @@ namespace modules
             constructor MkData
             datums : MemIdx  -- XXX: Currently, only valid MemIdx is 0 (see note
                              --      at above link for more info)
-            offset : Expr m  -- XXX: ConstExpr
+            offset : Expr  -- XXX: ConstExpr
             init   : Vect n Bits8
 
         ||| https://webassembly.github.io/spec/core/syntax/modules.html#syntax-import

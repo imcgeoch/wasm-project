@@ -1,5 +1,6 @@
-module JankInterpTest
+module Tests.JankInterpTest
 
+import Tests.JankInterpTestHelp 
 import Execution.JankInterp
 import Execution.Runtime
 import Structure.Types
@@ -7,33 +8,52 @@ import Structure.Instr
 import Util.BitUtil
 import Data.Vect
 
-b32_1 : Bits32
-b32_1 = prim__zextInt_B32 1
 
-b32_2 : Bits32
-b32_2 = prim__zextInt_B32 2
+%access export
 
-const2 : Constant I32_t
-const2 = AConst I32_t b32_2
+valsEq : {vt : ValType} -> machineType vt -> machineType vt -> Bool
+valsEq {vt} x y = case vt of
+                       (IValTp (ITp W32)) => x == y 
+                       (IValTp (ITp W64)) => x == y 
+                       (FValTp (FTp W32)) => x == y 
+                       (FValTp (FTp W64)) => x == y 
 
-const1 : Constant I32_t
-const1 = AConst I32_t b32_1
+compareStacks : (x : StackEntry) -> (y : StackEntry) -> Bool
+compareStacks (StVal (AConst vt val)) (StVal (AConst vt' val')) 
+  = (case decEq vt vt' of
+          (Yes Refl) => valsEq val val' 
+          (No contra) => False) 
 
-expr : ExecExpr 3
-expr = (Ins (Const const2)) :: (Ins (Const const1)) :: (Ins (IBinOp IAdd W32)) :: []
+compareStacks (StLabel (MkLabel arity cont)) (StLabel (MkLabel arity' cont')) = ?compareStacks_rhs_3
+compareStacks (StFrame (MkFrame locals modul)) (StFrame (MkFrame locals' modul')) = ?compareStacks_rhs_4
+compareStacks _ _ = False 
 
-config : Config
-config = MkStore [] [] [] []
+stacksEq : Stack n -> Stack m -> Bool
+stacksEq [] [] = True 
+stacksEq [] (x :: xs) = False 
+stacksEq (x :: xs) [] = False 
+stacksEq (x :: xs) (y :: ys) = if (compareStacks x y)
+                                 then stacksEq xs ys
+                                 else False
 
-interp : Interp
-interp = MkInterp config [] expr StatusRunning
+assertCorrect : Interp -> Stack n -> IO ()
+assertCorrect (MkInterp config stack expr status) stack' 
+  = case status of
+         StatusRunning => if stacksEq stack stack' 
+                             then putStrLn "Test Passed"
+                             else putStrLn "Test Failed: Stacks not equal"  
+         _ => putStrLn "Test Failed: Not Successful"
 
-interp1 : Interp
-interp1 = oneStep interp
+twoOnStack : Stack 1
+twoOnStack = [StVal (AConst (IValTp (ITp W32)) 2)]
 
-interp2 : Interp
-interp2 = oneStep interp1
+partial
+testOnePlusOne : IO ()
+testOnePlusOne = let expr = makeExpr ["1", "1", "+"]
+                     result = runExpr expr
+                     expected = twoOnStack
+                     in assertCorrect result expected 
 
-interp3 : Interp
-interp3 = oneStep interp2
+testEasy : IO ()
+testEasy = putStrLn "Test Passed" 
 

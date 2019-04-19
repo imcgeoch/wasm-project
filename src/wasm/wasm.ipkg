@@ -1,6 +1,5 @@
 package wasm
 
-opts = "--total"
 
 modules = Structure.Indices
         , Structure.Instr
@@ -12,3 +11,9 @@ modules = Structure.Indices
         , Execution.JankInterp
 
         , Util.BitUtil
+
+        , Tests.JankInterpTestHelp
+        , Tests.JankInterpTest
+
+tests = Tests.JankInterpTest.testEasy
+      , Tests.JankInterpTest.testOnePlusOne

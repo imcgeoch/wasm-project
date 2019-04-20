@@ -28,7 +28,7 @@ compareStacks (StLabel (MkLabel arity cont)) (StLabel (MkLabel arity' cont')) = 
 compareStacks (StFrame (MkFrame locals modul)) (StFrame (MkFrame locals' modul')) = ?compareStacks_rhs_4
 compareStacks _ _ = False 
 
-stacksEq : Stack n -> Stack m -> Bool
+stacksEq : Stack -> Stack -> Bool
 stacksEq [] [] = True 
 stacksEq [] (x :: xs) = False 
 stacksEq (x :: xs) [] = False 
@@ -36,7 +36,7 @@ stacksEq (x :: xs) (y :: ys) = if (compareStacks x y)
                                  then stacksEq xs ys
                                  else False
 
-assertCorrect : Interp -> Stack n -> IO ()
+assertCorrect : Interp -> Stack -> IO ()
 assertCorrect (MkInterp config stack expr status) stack' 
   = case status of
          StatusRunning => if stacksEq stack stack' 
@@ -44,7 +44,7 @@ assertCorrect (MkInterp config stack expr status) stack'
                              else putStrLn "Test Failed: Stacks not equal"  
          _ => putStrLn "Test Failed: Not Successful"
 
-twoOnStack : Stack 1
+twoOnStack : Stack
 twoOnStack = [StVal (AConst (IValTp (ITp W32)) 2)]
 
 partial

@@ -9,27 +9,48 @@ import Data.Vect
 
 %access public export
 
-{-
 --b32_1 : Bits32
 --b32_1 = prim__zextInt_B32 1
 
 --b32_2 : Bits32
 --b32_2 = prim__zextInt_B32 2
 
-const2 : Constant I32_t
-const2 = AConst I32_t 2
+const0 : Constant I32_t
+const0 = AConst I32_t 0
 
 const1 : Constant I32_t
 const1 = AConst I32_t 1
 
-expr : ExecExpr
-expr = (Ins (Const const2)) :: (Ins (Const const1)) :: (Ins (IBinOp IAdd W32)) :: []
+const2 : Constant I32_t
+const2 = AConst I32_t 2
+
+const3 : Constant I32_t
+const3 = AConst I32_t 3
+
+expr : Expr
+expr = (Const const2) :: (Const const1) :: (IBinOp IAdd W32) :: []
+
+cond_false : Instr
+cond_false = (Const const0)
+
+thens : Expr
+thens = (Const const2) :: (Const const1) :: (IBinOp IAdd W32) :: []
+
+elses : Expr
+elses = (Const const3) :: (Const const1) :: (IBinOp IAdd W32) :: []
+
+if_stmt : Expr
+if_stmt = (ContInstr (If Nothing thens elses)) :: []
+
+expr2 : Expr
+expr2 = cond_false :: if_stmt
+
 
 config : Config
 config = MkStore [] [] [] []
 
 interp : Interp
-interp = MkInterp config [] expr StatusRunning
+interp = MkInterp config [] (map toExecInstr expr) StatusRunning
 
 interp1 : Interp
 interp1 = oneStep interp
@@ -39,7 +60,12 @@ interp2 = oneStep interp1
 
 interp3 : Interp
 interp3 = oneStep interp2
--}
+
+-- If Statement
+
+if_interp1 : Interp
+if_interp1 = MkInterp config [] (map toExecInstr expr2) StatusRunning
+
 
 strToIns : String -> ExecInstr
 strToIns str = case str of
@@ -67,3 +93,5 @@ runExpr expr = let config = MkStore [] [] [] []
                    interp = MkInterp config [] expr StatusRunning in
                    runInterp interp 
 
+result_of_if : Interp
+result_of_if = runInterp if_interp1

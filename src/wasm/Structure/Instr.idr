@@ -129,7 +129,7 @@ mutual
                       | Unreachable
                       | Block ResultType Expr
                       | Loop  ResultType Expr
-                      | If    ResultType Expr (Vect _ Instr)
+                      | If    ResultType Expr (List Instr)
                       | Br    LabelIdx
                       | BrIf  LabelIdx
                       -- TODO: br_table, the first argument (the Vect) is a `vec` type in the WASM

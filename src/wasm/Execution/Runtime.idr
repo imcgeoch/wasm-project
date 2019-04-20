@@ -185,8 +185,8 @@ data StackEntry = StVal (Constant vt)
                 | StFrame Frame
 
 ||| https://webassembly.github.io/spec/core/exec/runtime.html#stack
-Stack : Nat ->  Type
-Stack n = Vect n StackEntry
+Stack : Type
+Stack = List StackEntry
 
 %name Stack stack
 

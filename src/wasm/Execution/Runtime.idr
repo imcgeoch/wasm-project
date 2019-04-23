@@ -9,17 +9,6 @@ import Data.Vect
 
 %access public export
 
-||| Wasm computations manipulate values of the four basic types.
-|||
-||| Note: We can possibly remove this as we are just wrapping Idris values, but
-|||       I'm keeping it in for now to conform to the spec.
-|||
-||| Spec: https://webassembly.github.io/spec/core/exec/runtime.html#syntax-val
-data Val = I32Val Bits32
-         | I64Val Void    -- XXX: Can't be created yet
-         | F32Val Void    -- XXX: Can't be created yet
-         | F64Val Void    -- XXX: Can't be created yet
-
 
 ||| A result is the outcome of a computation. It is either a sequence of values
 ||| or a trap.
@@ -180,13 +169,8 @@ mutual
 
 
 ||| https://webassembly.github.io/spec/core/exec/runtime.html#stack
-data StackEntry = StVal (Constant vt)
-                | StLabel Label
-                | StFrame Frame
-
-||| https://webassembly.github.io/spec/core/exec/runtime.html#stack
 Stack : Type
-Stack = List StackEntry
+Stack = List Val
 
 %name Stack stack
 

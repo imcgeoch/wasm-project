@@ -17,9 +17,25 @@ record MemArg where
 
 %name MemArg memarg
 
+||| Wasm computations manipulate values of the four basic types.
+|||
+||| Note: We can possibly remove this as we are just wrapping Idris values, but
+|||       I'm keeping it in for now to conform to the spec.
+|||
+||| Spec: https://webassembly.github.io/spec/core/exec/runtime.html#syntax-val
+data Val = I32Val Bits32
+         | I64Val Bits64
+         | F32Val Void    -- XXX: Can't be created yet
+         | F64Val Void    -- XXX: Can't be created yet
+
+implementation Eq Val where
+    (I32Val x) == (I32Val y) = x == y
+    (I64Val x) == (I64Val y) = x == y
+    _ == _ = False
+
 mutual
     ||| https://webassembly.github.io/spec/core/syntax/instructions.html#instructions
-    data Instr = Const    (Constant vt)
+    data Instr = Const    Val
                -- Unary operators
                | IUnOp    IUnaryOp       Width
                | FUnOp    FUnaryOp       Width
@@ -89,10 +105,6 @@ mutual
                        | FLe
                        | FGe
 
-    ||| Create a const of a given type
-    data Constant : (vt : ValType) ->  Type where
-        AConst : (vt : ValType) -> (val : machineType vt) -> Constant vt
-
     data ParametricInstr = Drop | Select
 
     data VariableInstr = LocalGet  LocalIdx
@@ -158,6 +170,5 @@ mutual
 %name IRelationalOp op
 %name FRelationalOp op
 %name Sign sx
-%name Constant constant
 %name MemoryInstr mem
 %name ITestOp op

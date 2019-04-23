@@ -18,34 +18,23 @@ valsEq {vt} x y = case vt of
                        (FValTp (FTp W32)) => x == y 
                        (FValTp (FTp W64)) => x == y 
 
-compareStacks : (x : StackEntry) -> (y : StackEntry) -> Bool
-compareStacks (StVal (AConst vt val)) (StVal (AConst vt' val')) 
-  = (case decEq vt vt' of
-          (Yes Refl) => valsEq val val' 
-          (No contra) => False) 
-
-compareStacks (StLabel (MkLabel arity cont)) (StLabel (MkLabel arity' cont')) = ?compareStacks_rhs_3
-compareStacks (StFrame (MkFrame locals modul)) (StFrame (MkFrame locals' modul')) = ?compareStacks_rhs_4
-compareStacks _ _ = False 
-
 stacksEq : Stack -> Stack -> Bool
 stacksEq [] [] = True 
 stacksEq [] (x :: xs) = False 
 stacksEq (x :: xs) [] = False 
-stacksEq (x :: xs) (y :: ys) = if (compareStacks x y)
-                                 then stacksEq xs ys
-                                 else False
+stacksEq (x :: xs) (y :: ys) = if x == y then stacksEq xs ys
+                                         else False
 
 assertCorrect : Interp -> Stack -> IO ()
-assertCorrect (MkInterp config stack expr status) stack' 
+assertCorrect (MkInterp config stack expr status) expected
   = case status of
-         StatusRunning => if stacksEq stack stack' 
+         StatusRunning => if stack == expected
                              then putStrLn "Test Passed"
                              else putStrLn "Test Failed: Stacks not equal"  
          _ => putStrLn "Test Failed: Not Successful"
 
 twoOnStack : Stack
-twoOnStack = [StVal (AConst (IValTp (ITp W32)) 2)]
+twoOnStack = [I32Val 2]
 
 partial
 testOnePlusOne : IO ()

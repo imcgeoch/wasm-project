@@ -48,8 +48,7 @@ mutual
 
     total
     oneStepInstr : Config -> Stack -> ExecExpr -> Instr -> Interp
-    oneStepInstr config stack expr (Const constant) = let stack' = ((StVal constant) :: stack) in 
-                                                          MkInterp config stack' expr StatusRunning
+    oneStepInstr config stack expr (Const val) = MkInterp config (val :: stack) expr StatusRunning
     oneStepInstr config stack expr (IUnOp op w) = ?oneStepInstr_rhs_2
     oneStepInstr config stack expr (FUnOp op w) = ?oneStepInstr_rhs_3
     oneStepInstr config stack expr instr@(IBinOp op _) =
@@ -68,53 +67,43 @@ mutual
     oneStepInstr config stack expr (MemInstr mem) = ?oneStepInstr_rhs_10
     oneStepInstr config stack expr (ContInstr cont) = oneStepContInstr config stack expr cont
 
-    oneStepConst : Config -> Stack -> ExecExpr -> Constant vt -> Interp
-    oneStepConst config stack expr (AConst vt val) = ?oneStepConst_rhs_1
+    oneStepConst : Config -> Stack -> ExecExpr -> Val -> Interp
+    oneStepConst config stack expr val = ?oneStepConst_rhs_1
 
     oneStepIUnOp : Stack -> IUnaryOp -> Either InterpError Stack
     oneStepIUnOp [] _           = Left (Err_StackUnderflow "Unop on empty stack")
-    oneStepIUnOp ((StLabel x) :: xs) _ = Left $ Err_InvalidInstruction "insert pun here"
-    oneStepIUnOp ((StFrame x) :: xs) _ = Left $ Err_InvalidInstruction ""
-    oneStepIUnOp ((StVal (AConst vt bits)) :: xs) op =
+    oneStepIUnOp (val :: xs) op =
         case op of
-             Clz => (case vt of
-                          (IValTp (ITp W32)) => let top : Bits32 = clz32 bits in
-                                                    Right $ (StVal (AConst (IValTp (ITp W32)) top)) :: xs
-                          (IValTp (ITp W64)) => let top : Bits32 = clz64 bits in
-                                                    Right $ (StVal (AConst (IValTp (ITp W32)) top)) :: xs
-                          (FValTp float_t) => Left (Err_StackTypeError "IUnOp CLZ applied to float"))
-             Ctz => (case vt of
-                          (IValTp (ITp W32)) => let top : Bits32 = ctz32 bits in
-                                                    Right $ (StVal (AConst (IValTp (ITp W32)) top)) :: xs
-                          (IValTp (ITp W64)) => let top : Bits32 = ctz64 bits in
-                                                    Right $ (StVal (AConst (IValTp (ITp W32)) top)) :: xs
-                          (FValTp float_t) => Left (Err_StackTypeError "IUnOp CTZ applied to float"))
+             Clz => (case val of
+                          (I32Val bits) => let top : Bits32 = clz32 bits in
+                                                    Right $ I32Val top :: xs
+                          (I64Val bits) => let top : Bits32 = clz64 bits in
+                                                    Right $ I32Val top :: xs
+                          _ => Left (Err_StackTypeError "IUnOp CLZ applied to float"))
+             Ctz => (case val of
+                          (I32Val bits) => let top : Bits32 = ctz32 bits in
+                                                    Right $ I32Val top :: xs
+                          (I64Val bits) => let top : Bits32 = ctz64 bits in
+                                                    Right $ I32Val top :: xs
+                          _ => Left (Err_StackTypeError "IUnOp CTZ applied to float"))
 
              Popcnt => ?rhs_3
 
     oneStepFUnOp : Stack -> FUnaryOp -> Either InterpError Stack
 
     oneStepIBinOp : Stack -> IBinaryOp -> Either InterpError Stack
-    oneStepIBinOp ((StVal (AConst vt bits)) :: ((StVal (AConst vt' bits')) :: xs)) op
-           =  case (decEq vt vt') of
-                (Yes Refl) => case vt' of
-                               (IValTp (ITp W32)) =>
-                                    (case applyI32BinOp bits bits' op of
-                                         Right bits2 =>
-                                               let x = StVal (AConst (IValTp (ITp W32)) bits2) in
-                                                 Right (x :: xs)
+    oneStepIBinOp (val1 :: val2 :: tl) op
+           =  case (val1, val2) of
+                (I32Val bits, I32Val bits') => 
+                                (case applyI32BinOp bits bits' op of
+                                         Right top => Right ((I32Val top) :: tl)
                                          Left err => Left err)
-                               (IValTp (ITp W64)) =>
-                                   (case applyI64BinOp bits bits' op of
-                                         Right bits2 =>
-                                               let x = StVal (AConst (IValTp (ITp W64)) bits2) in
-                                                 Right (x :: xs)
+                (I64Val bits, I64Val bits') => 
+                                (case applyI64BinOp bits bits' op of
+                                         Right top => Right ((I64Val top) :: tl)
                                          Left err => Left err)
-                               _  => Left $ Err_InvalidInstruction "Float operation applied to Int"
-                (No contra) => Left $ Err_StackTypeError "BinOp applied to different types"
-
-    oneStepIBinOp ((StVal _) :: (_ :: xs)) _ = Left $ Err_InvalidInstruction "Bad 1"
-    oneStepIBinOp _ _ = Left $ Err_InvalidInstruction "Bad 2"
+                _ => Left $ Err_StackTypeError "IBinOp applied to invalid different types"
+    oneStepIBinOp _ _ = Left $ Err_InvalidInstruction "Bad 1"
 
 
     -- TODO: We need to add a div-by-zero error and a Bits32-Not-0 type that we can pass in
@@ -175,7 +164,7 @@ mutual
     oneStepContInstr config stack expr Return = ?oneStepContInstr_rhs_6
     oneStepContInstr config stack expr (If x thens elses)
        = case stack of
-          ((StVal (AConst (IValTp (ITp W32)) val)) :: stack') =>
+          (I32Val val) :: stack' =>
                let block = (map toExecInstr (if val /= 0 then thens else elses))
                in MkInterp config stack' (block ++ expr) StatusRunning
           _ => MkInterp config stack expr (StatusError $ Err_StackUnderflow "No if cond")

@@ -15,17 +15,17 @@ import Data.Vect
 --b32_2 : Bits32
 --b32_2 = prim__zextInt_B32 2
 
-const0 : Constant I32_t
-const0 = AConst I32_t 0
+const0 : Val
+const0 = I32Val 0
 
-const1 : Constant I32_t
-const1 = AConst I32_t 1
+const1 : Val
+const1 = I32Val 1
 
-const2 : Constant I32_t
-const2 = AConst I32_t 2
+const2 : Val
+const2 = I32Val 2
 
-const3 : Constant I32_t
-const3 = AConst I32_t 3
+const3 : Val
+const3 = I32Val 3
 
 expr : Expr
 expr = (Const const2) :: (Const const1) :: (IBinOp IAdd W32) :: []
@@ -75,7 +75,7 @@ strToIns str = case str of
                   "+" => Ins (IBinOp IAdd W32) 
                   "-" => Ins (IBinOp ISub W32)
                   -- fails silently and produces zero on bad input
-                  x => Ins (Const (AConst I32_t (prim__zextInt_B32 (cast x)))) 
+                  x => Ins (Const (I32Val (prim__zextInt_B32 (cast x)))) 
 
 makeExpr : Vect n String -> ExecExpr
 makeExpr [] = [] 

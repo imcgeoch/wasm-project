@@ -179,8 +179,9 @@ mutual
                     | Invoke FuncAddr
                     | InitElem TableAddr Bits32 (Vect _ FuncIdx)
                     | InitData MemAddr   Bits32 (Vect _ Bits8)
-                    | Lab Label (Vect _ ExecInstr)
+                    | Lab Label Stack (List ExecInstr)
                     | Frm Frame (Vect _ ExecInstr)
+                    | Breaking Nat Stack
 
     data ExecInstr = Ins Instr | AdIns AdminInstr
 

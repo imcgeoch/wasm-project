@@ -48,11 +48,51 @@ mutual
                | IRel     IRelationalOp  Width
                | FRel     FRelationalOp  Width
                -- Conversion Instructions
-               | ConvInstr ConversionInstr
+               | I32WrapI64
+               | I64ExtendI32  Sign
+               | ITruncF       (IntType   w) (FloatType w) Sign
+               | F32DemoteF64
+               | F64DemoteF32
+               | FConvertI     (FloatType w) (IntType   w) Sign
+               | IReinterpretF (IntType   w) (FloatType w)
+               | FReinterpretI (FloatType w) (IntType   w)
+               | Drop
+               | Select
+               | LocalGet  LocalIdx
+               | LocalSet  LocalIdx
+               | LocalTee  LocalIdx
+               | GlobalGet GlobalIdx
+               | GlobalSet GlobalIdx
                -- Memory Instructions
-               | MemInstr MemoryInstr
+               | ILoad      (IntType   w)         MemArg
+               | FLoad      (FloatType w)         MemArg
+               | IStore     (IntType   w)         MemArg
+               | FStore     (FloatType w)         MemArg
+               | ILoad8     (IntType   w) Sign    MemArg
+               | ILoad16    (IntType   w) Sign    MemArg
+               | I64Load32                Sign    MemArg
+               | IStore8    (IntType w)   Sign    MemArg
+               | IStore16   (IntType w)   Sign    MemArg
+               | I64Store32               Sign    MemArg
+               | MemorySize
+               | MemoryGrow
                -- Control Instructions
-               | ContInstr ControlInstr
+               | Nop
+               | Unreachable
+               | Block ResultType Expr
+               | Loop  ResultType Expr
+               | If    ResultType Expr (List Instr)
+               | Br    LabelIdx
+               | BrIf  LabelIdx
+               -- TODO: br_table, the first argument (the Vect) is a `vec` type in the WASM
+               -- spec, which has the additional constraint that n < 2^32. We will need
+               -- to create a new type for this, but creating 2^32 in Nats will be
+               -- super expensive. Work around? Just don't worry about it?
+               | BrTable (Vect _ LabelIdx) LabelIdx
+               | Return
+               | FnCall FuncIdx
+               | FnCall_Indirect TypeIdx
+
 
     data IUnaryOp = Clz
                   | Ctz
@@ -105,53 +145,8 @@ mutual
                        | FLe
                        | FGe
 
-    data ParametricInstr = Drop | Select
 
-    data VariableInstr = LocalGet  LocalIdx
-                       | LocalSet  LocalIdx
-                       | LocalTee  LocalIdx
-                       | GlobalGet GlobalIdx
-                       | GlobalSet GlobalIdx
 
-    data MemoryInstr = ILoad      (IntType   w)         MemArg
-                     | FLoad      (FloatType w)         MemArg
-                     | IStore     (IntType   w)         MemArg
-                     | FStore     (FloatType w)         MemArg
-                     | ILoad8     (IntType   w) Sign    MemArg
-                     | ILoad16    (IntType   w) Sign    MemArg
-                     | I64Load32                Sign    MemArg
-                     | IStore8    (IntType w)   Sign    MemArg
-                     | IStore16   (IntType w)   Sign    MemArg
-                     | I64Store32               Sign    MemArg
-                     | MemorySize
-                     | MemoryGrow
-
-    data ConversionInstr = I32WrapI64
-                         | I64ExtendI32  Sign
-                         | ITruncF       (IntType   w) (FloatType w) Sign
-                         | F32DemoteF64
-                         | F64DemoteF32
-                         | FConvertI     (FloatType w) (IntType   w) Sign
-                         | IReinterpretF (IntType   w) (FloatType w)
-                         | FReinterpretI (FloatType w) (IntType   w)
-                         | ParamInstr ParametricInstr
-                         | VarInstr  VariableInstr
-
-    data ControlInstr = Nop
-                      | Unreachable
-                      | Block ResultType Expr
-                      | Loop  ResultType Expr
-                      | If    ResultType Expr (List Instr)
-                      | Br    LabelIdx
-                      | BrIf  LabelIdx
-                      -- TODO: br_table, the first argument (the Vect) is a `vec` type in the WASM
-                      -- spec, which has the additional constraint that n < 2^32. We will need
-                      -- to create a new type for this, but creating 2^32 in Nats will be
-                      -- super expensive. Work around? Just don't worry about it?
-                      | BrTable (Vect _ LabelIdx) LabelIdx
-                      | Return
-                      | FnCall FuncIdx
-                      | FnCall_Indirect TypeIdx
 
 
 
@@ -161,8 +156,6 @@ mutual
 
 %name Instr instr
 %name Expr expr
-%name ControlInstr cont
-%name ConversionInstr conv
 %name IUnaryOp op
 %name FUnaryOp op
 %name IBinaryOp op
@@ -170,5 +163,4 @@ mutual
 %name IRelationalOp op
 %name FRelationalOp op
 %name Sign sx
-%name MemoryInstr mem
 %name ITestOp op

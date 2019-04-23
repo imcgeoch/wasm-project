@@ -46,3 +46,8 @@ testOnePlusOne = let expr = makeExpr ["1", "1", "+"]
 testEasy : IO ()
 testEasy = putStrLn "Test Passed" 
 
+--- TEST BLOCKS
+
+p : Expr
+p = [Block Nothing []]
+

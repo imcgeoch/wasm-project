@@ -63,6 +63,10 @@ width (FValTp (FTp w)) = width' w
 ResultType : Type
 ResultType = Maybe ValType
 
+rt_size : ResultType -> Nat
+rt_size Nothing = 0
+rt_size (Just x) = 1
+
 ||| FuncType: Function types classify the signature of functions, mapping a
 ||| vector of parameters to a vector of results
 |||

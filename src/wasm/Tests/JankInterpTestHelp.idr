@@ -40,7 +40,7 @@ elses : Expr
 elses = (Const const3) :: (Const const1) :: (IBinOp IAdd W32) :: []
 
 if_stmt : Expr
-if_stmt = (ContInstr (If Nothing thens elses)) :: []
+if_stmt = (If Nothing thens elses) :: []
 
 expr2 : Expr
 expr2 = cond_false :: if_stmt

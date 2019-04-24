@@ -149,12 +149,6 @@ mutual
                                       _             => False)
 
 mutual
-    ||| https://webassembly.github.io/spec/core/exec/runtime.html#labels
-    record Label where
-        constructor MkLabel
-        arity : Nat
-        cont  : Expr
-
     ||| https://webassembly.github.io/spec/core/exec/runtime.html#frames
     record Activation where
         constructor MkActivation
@@ -179,7 +173,7 @@ mutual
                     | Invoke FuncAddr
                     | InitElem TableAddr Bits32 (Vect _ FuncIdx)
                     | InitData MemAddr   Bits32 (Vect _ Bits8)
-                    | Lab Label Stack (List ExecInstr)
+                    | Label Nat Expr Stack ExecExpr
                     | Frm Frame (Vect _ ExecInstr)
                     | Breaking Nat Stack
 

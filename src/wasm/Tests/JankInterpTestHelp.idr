@@ -6,66 +6,12 @@ import Structure.Types
 import Structure.Instr
 import Util.BitUtil
 import Data.Vect
+import Tests.SamplePrograms
 
 %access public export
 
---b32_1 : Bits32
---b32_1 = prim__zextInt_B32 1
-
---b32_2 : Bits32
---b32_2 = prim__zextInt_B32 2
-
-const0 : Val
-const0 = I32Val 0
-
-const1 : Val
-const1 = I32Val 1
-
-const2 : Val
-const2 = I32Val 2
-
-const3 : Val
-const3 = I32Val 3
-
-expr : Expr
-expr = (Const const2) :: (Const const1) :: (IBinOp IAdd W32) :: []
-
-cond_false : Instr
-cond_false = (Const const0)
-
-thens : Expr
-thens = (Const const2) :: (Const const1) :: (IBinOp IAdd W32) :: []
-
-elses : Expr
-elses = (Const const3) :: (Const const1) :: (IBinOp IAdd W32) :: []
-
-if_stmt : Expr
-if_stmt = (If Nothing thens elses) :: []
-
-expr2 : Expr
-expr2 = cond_false :: if_stmt
-
-
-config : Config
-config = MkStore [] [] [] []
-
-interp : Interp
-interp = MkInterp config [] (map toExecInstr expr) StatusRunning
-
-interp1 : Interp
-interp1 = oneStep interp
-
-interp2 : Interp
-interp2 = oneStep interp1
-
-interp3 : Interp
-interp3 = oneStep interp2
-
--- If Statement
-
-if_interp1 : Interp
-if_interp1 = MkInterp config [] (map toExecInstr expr2) StatusRunning
-
+newInterp : Expr -> Interp
+newInterp expr = MkInterp (MkStore [] [] [] []) [] (map toExecInstr expr) StatusRunning
 
 strToIns : String -> ExecInstr
 strToIns str = case str of
@@ -93,5 +39,62 @@ runExpr expr = let config = MkStore [] [] [] []
                    interp = MkInterp config [] expr StatusRunning in
                    runInterp interp 
 
-result_of_if : Interp
-result_of_if = runInterp if_interp1
+welcomeWagon : String
+welcomeWagon = unlines [ "+------------------------------------------------------------------------------+"
+                       , "| Welcome to the WASM Debugger                                                 |"
+                       , "| Author: Ben Kushigian                                                        |"
+                       , "| Date: 2019                                                                   |"
+                       , "| Reason: Coffee                                                               |"
+                       , "| Usage: Don't                                                                 |"
+                       , "|                                                                              |"
+                       , "| This is a simple debugger that lets you step through wasm programs using the |"
+                       , "| JankInterpreter. It's pretty simple: `(n)ext` steps through the next         |"
+                       , "| instruction, `(d)ump` dumps the interpreter to screen, and `e(x)it`          |"
+                       , "| terminates the debugging session. For information, enter `(h)elp`.           |"
+                       , "+------------------------------------------------------------------------------+"
+                       ]
+
+dumpInterp : Interp -> String
+dumpInterp (MkInterp config stack expr status) =
+    unlines [ "--------------------------------------------------------------------------------"
+            , "                            INTERPRETER DUMP"
+            , "stack: " ++ (show stack)
+            , "expr:  " ++ (show expr)
+            , "status: " ++ (show status)
+            , "--------------------------------------------------------------------------------\n"
+            ]
+                                  
+helpStr : String
+helpStr = unlines [ "--------------------------------------------------------------------------------"
+                  , "                          WASM DEBUGGER HELP"
+                  , "(n)ext: Execute next instruction"
+                  , "(d)ump: Dump current state"
+                  , "e(x)it: Exit the debugger"
+                  , "(h)elp: Display this help message"
+                  , "(r)un n: Run program for n steps; if n is not specified, run to end of program"
+                  , "--------------------------------------------------------------------------------"
+                  ]
+
+procInput : Interp -> String -> Maybe (String, Interp)
+procInput interp "next" = let next = oneStep interp in Just (dumpInterp next, next)
+procInput interp "run" = let result = runInterp interp in Just (dumpInterp interp, interp)
+procInput interp "dump" = Just (dumpInterp interp, interp)
+procInput interp "exit" = Nothing
+procInput interp "n" = procInput interp "next"
+procInput interp "r" = procInput interp "run"
+procInput interp "x" = procInput interp "exit"
+procInput interp "h" = procInput interp "help"
+procInput interp "help" = Just (helpStr, interp)
+procInput interp _ = Just ((dumpInterp interp) ++ "Error: couldn't read input\n", interp)
+
+debug' : Interp -> IO ()
+debug' interp = replWith interp "DEBUG> " procInput
+
+
+debug : Expr -> IO ()
+debug expr = do
+  putStrLn $ welcomeWagon
+  debug' (newInterp expr)
+
+printAThing : IO ()
+printAThing = putStrLn "a thing"

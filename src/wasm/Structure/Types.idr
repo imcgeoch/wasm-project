@@ -117,7 +117,7 @@ TableType = (Limits, ElemType)
 ||| Is this piece of data mutable or not?
 |||
 ||| Spec: https://webassembly.github.io/spec/core/syntax/types.html#syntax-mut
-data Mut = Const | Var
+data Mut = MutConst | MutVar
 
 ||| GlobalType: global types classify `global` variables, which hold a value
 ||| and can either be mutable or immutable
@@ -157,6 +157,10 @@ globals = filter (\x => case x of ExtGlobalTp arg => True
 --------------------------------------------------------------------------------
 ----                               INTERFACES                               ----
 --------------------------------------------------------------------------------
+
+Show Width where
+    show W32 = "32"
+    show W64 = "64"
 
 Eq Width where
     W32 == W32 = True
@@ -216,3 +220,10 @@ implementation DecEq ValType where
     decEq (FValTp (FTp W64)) (FValTp (FTp W64)) = Yes Refl
     decEq (IValTp int_t) (FValTp float_t) = No iValNotFVal
     decEq (FValTp float_t) (IValTp int_t) = No (negEqSym iValNotFVal)
+
+Show ValType where
+    show (IValTp (ITp W32)) = "i32_t"
+    show (IValTp (ITp W64)) = "i64_t"
+    show (FValTp (FTp W32)) = "f32_t"
+    show (FValTp (FTp W64)) = "f64_t"
+

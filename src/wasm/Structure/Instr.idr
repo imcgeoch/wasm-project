@@ -164,3 +164,90 @@ mutual
 %name FRelationalOp op
 %name Sign sx
 %name ITestOp op
+
+Show Val where
+    show (I32Val x) = "(i32 " ++ (show x) ++ ")"
+    show (I64Val x) = "(i64 " ++ (show x) ++ ")"
+    show (F32Val x) = "(f32 ???)"
+    show (F64Val x) = "(f64 ???)"
+
+Show IUnaryOp where
+    show Clz = "clz"
+    show Ctz = "ctz"
+    show Popcnt = "popcnt"
+
+Show FUnaryOp where
+    show Abs = "abs"
+    show Neg = "neg"
+    show Sqrt = "sqrt"
+    show Ceil = "ceil"
+    show Floor = "floor"
+    show Trunc = "trunc"
+    show Nearest = "nearest"
+
+Show Sign where
+    show Signed = "s"
+    show Unsigned = "u"
+
+Show IBinaryOp where
+    show IAdd = "iadd"
+    show ISub = "isub"
+    show IMul = "imul"
+    show (IDiv sx) = "idiv" ++ (show sx)
+    show (IRem sx) = "irem" ++ (show sx)
+    show And = "iand"
+    show Or = "ior"
+    show Xor = "ixor"
+    show Shl = "ishl"
+    show (Shr sx) = "ishr" ++ (show sx)
+    show Rotl = "irotl"
+    show Rotr = "irotr"
+
+Show Instr where
+    show (Const x) = show x
+    show (IUnOp op w) = (show op) ++ "_" ++ (show w)
+    show (FUnOp op w) = (show op) ++ "_" ++ (show w)
+    show (IBinOp op w) = (show op) ++ "_" ++ (show w)
+    show (FBinOp op w) = "<fbinop>"
+    show (ITest op w) = "<itestop>"
+    show (IRel op w) = "<irelop>"
+    show (FRel op w) = "<frelop>"
+    show I32WrapI64 = "<i32wrapi64>"
+    show (I64ExtendI32 sx) = "<i64extendi32 " ++ (show sx) ++ ">"
+    show (ITruncF int_t float_t sx) = "<itruncf>"
+    show F32DemoteF64 = "f32demotef64"
+    show F64DemoteF32 = "f64demotef32"
+    show (FConvertI float_t int_t sx) = "<fconverti>"
+    show (IReinterpretF int_t float_t) = "ireinterpretf"
+    show (FReinterpretI float_t int_t) = "freinterpteti"
+    show Drop = "drop"
+    show Select = "select"
+    show (LocalGet x) = "(local-get " ++ (show x) ++ ")"
+    show (LocalSet x) = "(local-set " ++ (show x) ++ ")"
+    show (LocalTee x) = "(local-tee " ++ (show x) ++ ")"
+    show (GlobalGet x) = "(global-get " ++ (show x) ++ ")"
+    show (GlobalSet x) = "(global-set " ++ (show x) ++ ")"
+    show (ILoad (ITp w) memarg) = "(i" ++ (show w) ++ "load ???)"
+    show (FLoad (FTp w) memarg) = "(f" ++ (show w) ++ "load ???)"
+    show (IStore (ITp w) memarg) = "(i" ++ (show w) ++ "store ???)"
+    show (FStore (FTp w) memarg) = "(f" ++ (show w) ++ "store ???)"
+    --show (ILoad8 (ITp w) sx memarg) = ?rhs_2
+    --show (ILoad16 (ITp w) sx memarg) = ?rhs_3
+    --show (I64Load32 sx memarg) = ?rhs_30
+    --show (IStore8 int_t sx memarg) = ?rhs_31
+    --show (IStore16 int_t sx memarg) = ?rhs_32
+    --show (I64Store32 sx memarg) = ?rhs_33
+    show MemorySize = "mem_size"
+    show MemoryGrow = "mem_grow"
+    show Nop = "nop"
+    show Unreachable = "unreachable"
+    show (Block rt xs) = "(block " ++ (show rt) ++ ", " ++ (show xs) ++ ")"
+    show (Loop x xs) = "(loop " ++ (show x) ++ ", " ++ (show xs) ++ ")"
+    show (If x xs ys) = "(if " ++ (show x) ++ " then " ++ (show xs) ++ " else " ++ (show ys) ++ ")"
+    show (Br x) = "br"
+    -- show (BrIf x) = ?rhs_42
+    -- show (BrTable xs x) = ?rhs_43
+    show Return = "return"
+    -- show (FnCall x) = ?rhs_45
+    -- show (FnCall_Indirect x) = ?rhs_46
+    show _ = "(instr not showable yet!)"

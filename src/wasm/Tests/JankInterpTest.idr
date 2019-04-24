@@ -11,40 +11,25 @@ import Data.Vect
 
 %access export
 
-valsEq : {vt : ValType} -> machineType vt -> machineType vt -> Bool
-valsEq {vt} x y = case vt of
-                       (IValTp (ITp W32)) => x == y 
-                       (IValTp (ITp W64)) => x == y 
-                       (FValTp (FTp W32)) => x == y 
-                       (FValTp (FTp W64)) => x == y 
-
-stacksEq : Stack -> Stack -> Bool
-stacksEq [] [] = True 
-stacksEq [] (x :: xs) = False 
-stacksEq (x :: xs) [] = False 
-stacksEq (x :: xs) (y :: ys) = if x == y then stacksEq xs ys
-                                         else False
-
-assertCorrect : Interp -> Stack -> IO ()
-assertCorrect (MkInterp config stack expr status) expected
+assertResultStack : Interp -> Stack -> IO ()
+assertResultStack (MkInterp config stack expr status) expected
   = case status of
          StatusRunning => if stack == expected
                              then putStrLn "Test Passed"
-                             else putStrLn "Test Failed: Stacks not equal"  
+                             else putStrLn $ "[!] Test Failed:  Stacks not equal.\n    Expected: "   ++ (show expected) ++ "\n       Found: " ++ (show stack) ++ "\n"
          _ => putStrLn "Test Failed: Not Successful"
-
-twoOnStack : Stack
-twoOnStack = [I32Val 2]
 
 partial
 testOnePlusOne : IO ()
-testOnePlusOne = let expr = makeExpr ["1", "1", "+"]
-                     result = runExpr expr
-                     expected = twoOnStack
-                     in assertCorrect result expected 
+testOnePlusOne = let expr = [Const (I32Val 1), Const (I32Val 1), IBinOp IAdd W32]
+                     result = runExpr (map toExecInstr expr)
+                     expected = [I32Val 2]
+                     in assertResultStack result expected 
 
-testEasy : IO ()
-testEasy = putStrLn "Test Passed" 
+partial
+testIf_1 : IO ()
+testIf_1 = let result = runExpr (map toExecInstr [Const (I32Val 1), If (Just I32_t) [Const (I32Val 2)] [Const (I32Val 3)]])
+            in assertResultStack result [I32Val 2]
 
 --- TEST BLOCKS
 

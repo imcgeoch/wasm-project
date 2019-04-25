@@ -24,4 +24,4 @@ LocalIdx : Type
 LocalIdx = Bits32
 
 LabelIdx : Type
-LabelIdx = Bits32
+LabelIdx = Nat

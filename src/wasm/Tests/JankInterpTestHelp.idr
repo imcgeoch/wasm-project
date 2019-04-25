@@ -10,8 +10,12 @@ import Tests.SamplePrograms
 
 %access public export
 
+||| Create a new interp with n bytes of memory
+newInterpWithMemory : Nat -> Expr -> Interp
+newInterpWithMemory n expr = MkInterp (MkStore [] [] (MkMemInst (replicate n 0) Nothing) []) [] (map toExecInstr expr) StatusRunning
+
 newInterp : Expr -> Interp
-newInterp expr = MkInterp (MkStore [] [] [] []) [] (map toExecInstr expr) StatusRunning
+newInterp = newInterpWithMemory 0
 
 strToIns : String -> ExecInstr
 strToIns str = case str of
@@ -34,10 +38,8 @@ runInterp interp = case interp of
                          (MkInterp config stack (x :: xs) status) => runInterp (oneStep interp) 
 
 partial
-runExpr : ExecExpr -> Interp
-runExpr expr = let config = MkStore [] [] [] []
-                   interp = MkInterp config [] expr StatusRunning in
-                   runInterp interp 
+runExpr : Expr -> Interp
+runExpr expr = runInterp (newInterp expr)
 
 welcomeWagon : String
 welcomeWagon = unlines [ "+------------------------------------------------------------------------------+"
@@ -58,9 +60,10 @@ dumpInterp : Interp -> String
 dumpInterp (MkInterp config stack expr status) =
     unlines [ "--------------------------------------------------------------------------------"
             , "                            INTERPRETER DUMP"
+            , "status: " ++ (show status)
+            , "mem: " ++ (show (mems config))
             , "stack: " ++ (show stack)
             , "expr:  " ++ (show expr)
-            , "status: " ++ (show status)
             , "--------------------------------------------------------------------------------\n"
             ]
                                   
@@ -80,21 +83,25 @@ procInput interp "next" = let next = oneStep interp in Just (dumpInterp next, ne
 procInput interp "run" = let result = runInterp interp in Just (dumpInterp interp, interp)
 procInput interp "dump" = Just (dumpInterp interp, interp)
 procInput interp "exit" = Nothing
+procInput interp "help" = Just (helpStr, interp)
 procInput interp "n" = procInput interp "next"
+procInput interp "d" = procInput interp "dump"
 procInput interp "r" = procInput interp "run"
 procInput interp "x" = procInput interp "exit"
 procInput interp "h" = procInput interp "help"
-procInput interp "help" = Just (helpStr, interp)
 procInput interp _ = Just ((dumpInterp interp) ++ "Error: couldn't read input\n", interp)
 
 debug' : Interp -> IO ()
 debug' interp = replWith interp "DEBUG> " procInput
 
 
+debugWithMemory : Nat -> Expr -> IO()
+debugWithMemory k expr = do
+    putStrLn $ welcomeWagon
+    debug' (newInterpWithMemory k expr)
+
 debug : Expr -> IO ()
-debug expr = do
-  putStrLn $ welcomeWagon
-  debug' (newInterp expr)
+debug = debugWithMemory 0
 
 printAThing : IO ()
 printAThing = putStrLn "a thing"

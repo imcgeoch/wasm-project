@@ -12,15 +12,12 @@ import Data.Bits
 ||| An argument to a memory instruction
 record MemArg where
     constructor MkMemArg
-    offset : Bits32
+    offset : Nat
     align  : Bits32
 
 %name MemArg memarg
 
 ||| Wasm computations manipulate values of the four basic types.
-|||
-||| Note: We can possibly remove this as we are just wrapping Idris values, but
-|||       I'm keeping it in for now to conform to the spec.
 |||
 ||| Spec: https://webassembly.github.io/spec/core/exec/runtime.html#syntax-val
 data Val = I32Val Bits32
@@ -189,6 +186,9 @@ Show Sign where
     show Signed = "s"
     show Unsigned = "u"
 
+Show MemArg where
+    show (MkMemArg offset align) = "(memarg " ++ (show offset) ++ "," ++ (show align) ++ ")"
+
 Show IBinaryOp where
     show IAdd = "iadd"
     show ISub = "isub"
@@ -203,6 +203,7 @@ Show IBinaryOp where
     show Rotl = "irotl"
     show Rotr = "irotr"
 
+total
 Show Instr where
     show (Const x) = show x
     show (IUnOp op w) = (show op) ++ "_" ++ (show w)
@@ -227,10 +228,10 @@ Show Instr where
     show (LocalTee x) = "(local-tee " ++ (show x) ++ ")"
     show (GlobalGet x) = "(global-get " ++ (show x) ++ ")"
     show (GlobalSet x) = "(global-set " ++ (show x) ++ ")"
-    show (ILoad (ITp w) memarg) = "(i" ++ (show w) ++ "load ???)"
-    show (FLoad (FTp w) memarg) = "(f" ++ (show w) ++ "load ???)"
-    show (IStore (ITp w) memarg) = "(i" ++ (show w) ++ "store ???)"
-    show (FStore (FTp w) memarg) = "(f" ++ (show w) ++ "store ???)"
+    show (ILoad (ITp w) memarg) = "(i" ++ (show w) ++ "load " ++ (show memarg) ++ ")"
+    show (FLoad (FTp w) memarg) = "(f" ++ (show w) ++ "load " ++ (show memarg) ++ ")"
+    show (IStore (ITp w) memarg) = "(i" ++ (show w) ++ "store " ++ (show memarg) ++ ")"
+    show (FStore (FTp w) memarg) = "(f" ++ (show w) ++ "store " ++ (show memarg) ++ ")"
     --show (ILoad8 (ITp w) sx memarg) = ?rhs_2
     --show (ILoad16 (ITp w) sx memarg) = ?rhs_3
     --show (I64Load32 sx memarg) = ?rhs_30
@@ -241,9 +242,9 @@ Show Instr where
     show MemoryGrow = "mem_grow"
     show Nop = "nop"
     show Unreachable = "unreachable"
-    show (Block rt xs) = "(block " ++ (show rt) ++ ", " ++ (show xs) ++ ")"
-    show (Loop x xs) = "(loop " ++ (show x) ++ ", " ++ (show xs) ++ ")"
-    show (If x xs ys) = "(if " ++ (show x) ++ " then " ++ (show xs) ++ " else " ++ (show ys) ++ ")"
+    show (Block rt xs) = assert_total $ "(block " ++ (show rt) ++ ", " ++ (show xs) ++ ")"
+    show (Loop x xs)   = assert_total $ "(loop " ++ (show x) ++ ", " ++ (show xs) ++ ")"
+    show (If x xs ys)  = assert_total $ "(if " ++ (show x) ++ " then " ++ (show xs) ++ " else " ++ (show ys) ++ ")"
     show (Br x) = "br"
     -- show (BrIf x) = ?rhs_42
     -- show (BrTable xs x) = ?rhs_43

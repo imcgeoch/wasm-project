@@ -34,3 +34,9 @@ countOnes32 x = natToBits32 (countOnes' (unpack $ b32ToBinString x))
 
 countOnes64 : Bits64 -> Bits32
 countOnes64 x = natToBits32 (countOnes' (unpack $ b64ToBinString x))
+
+bytesToB32 : List Bits8 -> Bits32
+bytesToB32 xs = foldl (\acc, elem => prim__addB32 (prim__shlB32 acc 8) (prim__zextB8_B32 elem)) 0 xs
+
+bytesToB64 : List Bits8 -> Bits64
+bytesToB64 xs = foldl (\acc, elem => prim__addB64 (prim__shlB64 acc 16) (prim__zextB8_B64 elem)) 0 xs

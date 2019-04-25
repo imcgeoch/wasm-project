@@ -45,10 +45,10 @@ mutual
     ||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-store
     record Store where
         constructor MkStore
-        funcs   : Vect n1 FuncInst
-        tables  : Vect n2 TableInst
-        mems    : Vect n3 MemInst
-        globals : Vect n4 GlobalInst
+        funcs   : List FuncInst
+        tables  : List TableInst
+        mems    : MemInst    --- XXX: Only using single memory for now!!!
+        globals : List GlobalInst
 
 
 
@@ -109,8 +109,11 @@ mutual
     ||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-meminst
     record MemInst where
         constructor MkMemInst
-        datums : Vect len Bits8
+        datums : List Bits8
         max    : Maybe Bits32
+
+    Show MemInst where
+        show (MkMemInst datums max) = "{mem-inst max: " ++ (show max) ++ "\n               data: " ++ (show datums) ++ "}"
 
     ||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-globalinst
     record GlobalInst where

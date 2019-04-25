@@ -5,8 +5,10 @@ import Execution.Runtime
 import Structure.Instr
 import Structure.Types
 import Util.BitUtil
+import Util.ListUtil
 import Data.Vect
 import Data.Bits
+import Structure.Indices
 
 %access public export
 
@@ -15,6 +17,7 @@ data InterpError : Type where
   Err_StackTypeError : String -> InterpError
   Err_StackWidthError : String -> InterpError
   Err_InvalidInstruction : String -> InterpError
+  Err_MemoryAccess : String -> InterpError
 
 data InterpStatus : Type where
   StatusRunning   :  InterpStatus
@@ -71,7 +74,7 @@ mutual
              --Invoke k => ?oneStepAdmin_rhs_2
              --InitData k x xs => ?oneStepAdmin_rhs_3
              --Frm x xs => ?oneStepAdmin_rhs_5
-                             
+
 
 --    oneStepAdmin config stack expr Trap = MkInterp config stack ((AdIns Trap) :: expr) StatusTrapped
 --    oneStepAdmin config stack expr (Invoke k) = ?oneStepAdmin_rhs_2
@@ -82,24 +85,65 @@ mutual
 
 
 
-    total
+    -- TODO: Show isn't total, but it should be TODO: Show isn't total, but it should be
     oneStepInstr : Config -> Stack -> ExecExpr -> Instr -> Interp
     oneStepInstr config stack expr instr =
-        case instr of
-             Const val => MkInterp config (val :: stack) expr StatusRunning
-
-             -- IUnOp op w => ?oneStepInstr_rhs_2
-
-             -- FUnOp op w => ?oneStepInstr_rhs_3
+      let
+          -- The following are convenience functions to create new Interps
+          mk_error        = (\err => MkInterp config stack (Ins instr :: expr) (StatusError err))
+          push_val        = (\val => MkInterp config (val :: stack) expr StatusRunning)
+          with_stack      = (\vals => MkInterp config vals expr StatusRunning)
+          with_exec_ins   = (\instr => MkInterp config stack (instr :: expr) StatusRunning)
+          with_admin_ins  = (\instr => with_exec_ins (AdIns instr))
+          with_plain_ins  = (\instr => with_exec_ins (Ins instr))
+      in case instr of
+             Const val => push_val val
 
              IBinOp op w =>  case stack of
-                                  []      => MkInterp config stack (Ins instr :: expr) (StatusError $ Err_StackUnderflow "BinOp applied to empty stack")
-                                  x :: [] => MkInterp config stack (Ins instr :: expr) (StatusError $ Err_StackUnderflow "BinOp applied to single argument")
+                                  []      => mk_error $ Err_StackUnderflow "BinOp applied to empty stack"
+                                  x :: [] => mk_error $ Err_StackUnderflow "BinOp applied to single argument"
                                   x :: y :: xs =>
                                       case (oneStepIBinOp stack op) of
-                                          Left err => MkInterp config stack ((Ins instr) :: expr) (StatusError $ err)
-                                          Right s => MkInterp config s expr StatusRunning
+                                          Left err => mk_error err
+                                          Right s => with_stack s
 
+             Block tp es => with_exec_ins $ AdIns (Label (rt_size tp) [] [] (map toExecInstr es))
+             If tp thn els => case stack of
+                     []                => mk_error $ Err_StackUnderflow "If called on empty stack"
+                     I32Val val :: vs' => MkInterp config vs' (Ins (Block tp (if val /= 0 then thn else els)) :: expr) StatusRunning
+                     _                 => mk_error $ Err_StackTypeError "If cond must be I32"
+
+             Loop tp es' => with_exec_ins $ AdIns (Label 0 [instr] [] (map toExecInstr es'))
+
+             Br l => with_admin_ins (Breaking l stack)
+
+             -- XXX: Treating mem as first mems instance!!! Broken for multiple modules!!!
+             ILoad (ITp w) (MkMemArg offset align) =>
+                       case (mems config) of
+                            MkMemInst datums max =>
+                                  case w of
+                                         W32 => push_val (I32Val (bytesToB32 (take 4 (drop offset datums))))
+                                         W64 => push_val (I64Val (bytesToB64 (take 8 (drop offset datums))))
+             IStore (ITp w) (MkMemArg offset align) =>
+                        (case mems config of
+                             MkMemInst datums max => (case stack of
+                                          [] => mk_error (Err_StackUnderflow "Called store on empty stack")
+                                          I32Val x :: xs =>
+                                                case w of
+                                                    W32 => case updateWithSpliceAt datums offset (b32ToBytes x) of
+                                                                Nothing => mk_error (Err_MemoryAccess "Memory update failed")
+                                                                Just new_datums  => let new_mem = MkMemInst new_datums max
+                                                                                        new_conf = MkStore [] [] new_mem [] in
+                                                                                        MkInterp new_conf xs expr StatusRunning
+                                                    _ => mk_error (Err_StackTypeError ((show instr) ++ " applied to I64"))
+                                          I64Val x :: xs => case w of
+                                                                 W32 => mk_error (Err_StackTypeError ((show instr) ++ " applied to I32"))
+                                                                 _ => ?oneStepInstr_rhs_6
+                                          _ => ?oneadsfasdfasflkjlkj
+                        ))
+
+             -- IUnOp op w => ?oneStepInstr_rhs_2
+             -- FUnOp op w => ?oneStepInstr_rhs_3
              -- FBinOp op w => ?oneStepInstr_rhs_5
              -- ITest op w => ?oneStepInstr_rhs_6
              -- IRel op w => ?oneStepInstr_rhs_7
@@ -114,9 +158,7 @@ mutual
              -- FReinterpretI float_t int_t => ?oneStepInstr_rhs_16
              -- Drop => ?oneStepInstr_rhs_17
              -- Select => ?oneStepInstr_rhs_18
-             -- ILoad int_t memarg => ?oneStepInstr_rhs_19
              -- FLoad float_t memarg => ?oneStepInstr_rhs_20
-             -- IStore int_t memarg => ?oneStepInstr_rhs_21
              -- FStore float_t memarg => ?oneStepInstr_rhs_22
              -- ILoad8 int_t sx memarg => ?oneStepInstr_rhs_23
              -- ILoad16 int_t sx memarg => ?oneStepInstr_rhs_24
@@ -128,32 +170,8 @@ mutual
              -- MemoryGrow => ?oneStepInstr_rhs_30
              -- Nop => ?oneStepInstr_rhs_31
              -- Unreachable => ?oneStepInstr_rhs_32
-             Block tp es => MkInterp config stack (AdIns (Label (rt_size tp) [] [] (map toExecInstr es)) :: expr) StatusRunning
-             If tp thn els =>
-               (case stack of
-                     [] => MkInterp config stack ((Ins instr) :: expr) (StatusError $ Err_StackUnderflow "If called on empty stack")
-                     I32Val val :: vs' => MkInterp config vs' (Ins (Block tp (if val == 0 then els else thn)) :: expr) StatusRunning
-                     _ => MkInterp config stack expr (StatusError $ Err_StackTypeError "If cond must be I32"))
-             Loop x xs => ?oneStepInstr_rhs_34
              -- Return => ?oneStepInstr_rhs_36
              _ => ?oneStepInstr_rhs_1
-
-
---    oneStepInstr config stack expr instr@(IBinOp op _) =
---        case stack of
---            [] => ?empty
---            x :: [] => ?one_thing
---            x :: y :: xs =>
---                case (oneStepIBinOp stack op) of
---                    Left err => MkInterp config stack ((Ins instr) :: expr) (StatusError $ err)
---                    Right s => MkInterp config s expr StatusRunning
---    oneStepInstr config stack expr (FBinOp op w) = ?oneStepInstr_rhs_5
---    oneStepInstr config stack expr (ITest op w) = ?oneStepInstr_rhs_6
---    oneStepInstr config stack expr (IRel op w) = ?oneStepInstr_rhs_7
---    oneStepInstr config stack expr (FRel op w) = ?oneStepInstr_rhs_8
---    oneStepInstr config stack expr (ConvInstr conv) = ?oneStepInstr_rhs_9
---    oneStepInstr config stack expr (MemInstr mem) = ?oneStepInstr_rhs_10
---    oneStepInstr config stack expr (ContInstr cont) = oneStepContInstr config stack expr cont
 
     oneStepIUnOp : Stack -> IUnaryOp -> Either InterpError Stack
     oneStepIUnOp [] _           = Left (Err_StackUnderflow "Unop on empty stack")

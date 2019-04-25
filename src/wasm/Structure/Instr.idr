@@ -205,7 +205,7 @@ Show IBinaryOp where
 
 total
 Show Instr where
-    show (Const x) = show x
+    show (Const x) = show  x
     show (IUnOp op w) = (show op) ++ "_" ++ (show w)
     show (FUnOp op w) = (show op) ++ "_" ++ (show w)
     show (IBinOp op w) = (show op) ++ "_" ++ (show w)
@@ -246,7 +246,7 @@ Show Instr where
     show (Loop x xs)   = assert_total $ "(loop " ++ (show x) ++ ", " ++ (show xs) ++ ")"
     show (If x xs ys)  = assert_total $ "(if " ++ (show x) ++ " then " ++ (show xs) ++ " else " ++ (show ys) ++ ")"
     show (Br x) = "br"
-    -- show (BrIf x) = ?rhs_42
+    show (BrIf x) = "(br-if " ++ (show x) ++ ")"
     -- show (BrTable xs x) = ?rhs_43
     show Return = "return"
     -- show (FnCall x) = ?rhs_45

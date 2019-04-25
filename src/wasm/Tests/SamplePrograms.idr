@@ -23,9 +23,6 @@ ifProg1 = [Const (I32Val 1), If (Just I32_t) [Const (I32Val 2)] [Const (I32Val 3
 ifProg2 : Expr
 ifProg2 = [Const (I32Val 1), If Nothing [Const (I32Val 2)] [Const (I32Val 3)]]
 
-loopProg1 : Expr
-loopProg1 = [Loop (Just I32_t) [Const (I32Val 0), If Nothing [Br 0] [Const (I32Val 1), IBinOp IAdd W32]]]
-
 ||| storeLocal1: This program stores the I32 const `123` to memory location 0.
 |||
 ||| Expected final state: 
@@ -47,3 +44,12 @@ storeLoadLoadAdd = [ Const (I32Val 13)
                    , IStore (ITp W32) (MkMemArg 0 0)
                    ]
                     
+loopProg1 : Expr
+loopProg1 = [ Const (I32Val 5)
+            , IStore (ITp W32) (MkMemArg 0 0)
+            , Loop (Just I32_t) [ ILoad (ITp W32) (MkMemArg 0 0)   -- Load x
+                                , Const (I32Val 1)                 -- push 1
+                                , IBinOp ISub W32                  -- sub
+                                , IStore (ITp W32) (MkMemArg 0 0)  -- save
+                                , ILoad (ITp W32) (MkMemArg 0 0)   -- load
+                                , BrIf 0]]

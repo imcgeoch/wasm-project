@@ -61,28 +61,20 @@ mutual
                 MkInterp config stack ((AdIns Trap) :: expr) StatusTrapped
 
              Label arity cont vs ((AdIns (Breaking Z vs')) :: es) =>
-                if (length vs') < arity then MkInterp config stack expr (StatusError $ Err_StackUnderflow "Underflow while breaking")
-                                        else MkInterp config ((take arity vs') ++ stack) expr StatusRunning
+                if (length vs') < arity
+                    then MkInterp config stack expr (StatusError $ Err_StackUnderflow "Underflow while breaking")
+                    else MkInterp config ((take arity vs') ++ stack) ((map toExecInstr cont) ++ expr) StatusRunning
 
              Label arity cont vs ((AdIns (Breaking (S k) vs')) :: es) =>
                 MkInterp config stack (AdIns (Breaking k vs') :: expr) StatusRunning
 
              Label arity cont vs (e :: es) =>
                 let next = oneStep (MkInterp config vs (e::es) StatusRunning) in
-                    (case next of (MkInterp c vs' es' status) => MkInterp c vs (AdIns (Label arity cont vs' es') :: expr) status)
+                    (case next of (MkInterp c vs' es' status) => MkInterp c stack (AdIns (Label arity cont vs' es') :: expr) status)
              _ => ?oneStepAdmin_rhs_1
              --Invoke k => ?oneStepAdmin_rhs_2
              --InitData k x xs => ?oneStepAdmin_rhs_3
              --Frm x xs => ?oneStepAdmin_rhs_5
-
-
---    oneStepAdmin config stack expr Trap = MkInterp config stack ((AdIns Trap) :: expr) StatusTrapped
---    oneStepAdmin config stack expr (Invoke k) = ?oneStepAdmin_rhs_2
---    oneStepAdmin config stack expr (InitData k x xs) = ?oneStepAdmin_rhs_3
---    oneStepAdmin config stack expr (Label arity cont vs es) = ?oneStepAdmin_rhs_label_1
---    oneStepAdmin config stack expr (Frm x xs) = ?oneStepAdmin_rhs_5
---    oneStepAdmin config stack expr (Breaking n es) = MkInterp config stack expr (StatusError $ Err_InvalidInstruction "Breaking error")
-
 
 
     -- TODO: Show isn't total, but it should be TODO: Show isn't total, but it should be
@@ -96,6 +88,7 @@ mutual
           with_exec_ins   = (\instr => MkInterp config stack (instr :: expr) StatusRunning)
           with_admin_ins  = (\instr => with_exec_ins (AdIns instr))
           with_plain_ins  = (\instr => with_exec_ins (Ins instr))
+          do_nothing      = MkInterp config stack expr StatusRunning
       in case instr of
              Const val => push_val val
 
@@ -116,6 +109,13 @@ mutual
              Loop tp es' => with_exec_ins $ AdIns (Label 0 [instr] [] (map toExecInstr es'))
 
              Br l => with_admin_ins (Breaking l stack)
+
+             BrIf l => case stack of
+                      [] => mk_error $ Err_StackUnderflow "BrIf called on empty stack"
+                      I32Val val :: vs' => if val /= 0
+                                              then with_admin_ins (Breaking l vs')
+                                              else MkInterp config vs' expr StatusRunning
+                      _ => mk_error $ Err_StackTypeError "BrIf applied to invalid type"
 
              -- XXX: Treating mem as first mems instance!!! Broken for multiple modules!!!
              ILoad (ITp w) (MkMemArg offset align) =>
@@ -142,6 +142,7 @@ mutual
                                           _ => ?oneadsfasdfasflkjlkj
                         ))
 
+              
              -- IUnOp op w => ?oneStepInstr_rhs_2
              -- FUnOp op w => ?oneStepInstr_rhs_3
              -- FBinOp op w => ?oneStepInstr_rhs_5
@@ -252,7 +253,7 @@ mutual
         show Trap = "trap"
         show (Invoke k) = "(invoke " ++ (show k) ++ ")"
         show (InitData k x xs) = ""
-        show (Label k xs ys zs) = "(label <arity:" ++ (show k) ++ ">, <cont:" ++ (show xs) ++ ">, <vs:" ++ (show ys) ++ ">, <es:" ++ (show zs) ++ ">)"
+        show (Label k xs ys zs) = "{label\n    arity: " ++ (show k) ++ ",\n    cont: " ++ (show xs) ++ ",\n    vs: " ++ (show ys) ++ "\n    es:" ++ (show zs) ++ ")"
         show (Frm x xs) = ""
         show (Breaking k xs) = "(breaking " ++ (show k) ++ ", " ++ (show xs) ++ ")"
 

@@ -89,6 +89,7 @@ mutual
           with_admin_ins  = (\instr => with_exec_ins (AdIns instr))
           with_plain_ins  = (\instr => with_exec_ins (Ins instr))
           do_nothing      = MkInterp config stack expr StatusRunning
+          trapped         = MkInterp config stack expr StatusTrapped
       in case instr of
              Const val => push_val val
 
@@ -141,8 +142,9 @@ mutual
                                                                  _ => ?oneStepInstr_rhs_6
                                           _ => ?oneadsfasdfasflkjlkj
                         ))
-
               
+             Unreachable => trapped
+             Nop => do_nothing
              -- IUnOp op w => ?oneStepInstr_rhs_2
              -- FUnOp op w => ?oneStepInstr_rhs_3
              -- FBinOp op w => ?oneStepInstr_rhs_5
@@ -169,8 +171,6 @@ mutual
              -- I64Store32 sx memarg => ?oneStepInstr_rhs_28
              -- MemorySize => ?oneStepInstr_rhs_29
              -- MemoryGrow => ?oneStepInstr_rhs_30
-             -- Nop => ?oneStepInstr_rhs_31
-             -- Unreachable => ?oneStepInstr_rhs_32
              -- Return => ?oneStepInstr_rhs_36
              _ => ?oneStepInstr_rhs_1
 

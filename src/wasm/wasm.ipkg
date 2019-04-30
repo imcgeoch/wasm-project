@@ -17,5 +17,7 @@ modules = Structure.Indices
         , Tests.JankInterpTest
         , Tests.SamplePrograms
 
+        , Validation.JankValidator
+
 tests = Tests.JankInterpTest.testOnePlusOne
       , Tests.JankInterpTest.testIf_1

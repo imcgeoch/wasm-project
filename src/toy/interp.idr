@@ -7,6 +7,7 @@ mutual
   data UOp = Neg64 | Neg32 
 
   data Instr = BinOp BOp | UnOp UOp | ConstOp Val 
+             | If (List Instr) (List Instr) 
 
 data Error = StackUnderflow | TypeError
 
@@ -14,6 +15,10 @@ record Interp where
   constructor MkInterp
   stack : List Val 
   instr : List Instr
+
+data Tp = T32 | T64
+data IntrpTp = List Tp
+
 
 oneStepBinOp : Val -> Val -> BOp -> Either Error Val
 oneStepBinOp (I32 x) (I32 y) Add32 = Right $ I32 (x + y) 
@@ -47,13 +52,29 @@ step (MkInterp (x :: (x' :: xs)) ((BinOp y) :: ys))
 step (MkInterp (x :: xs) ((UnOp y) :: ys)) 
   = case oneStepUnOp x y of
          (Left error) => Left error
-         (Right val) => Right $ MkInterp (val :: xs) ys 
+         (Right val) => Right $ MkInterp (val :: xs) ys
+step (MkInterp xs ((ConstOp c) :: ys)) = Right $ MkInterp (c :: xs) (ys) 
+step (MkInterp ((I32 x) :: xs) ((If lst1 lst2) :: ys)) 
+  = case decEq x 0 of
+         (Yes Refl) => Right $ MkInterp xs (lst2 ++ ys)
+         (No contra) => Right $ MkInterp xs (lst1 ++ ys) 
+step (MkInterp ((I64 x) :: xs) ((If lst1 lst2) :: ys)) 
+  = case decEq x 0 of
+         (Yes Refl) => Right $ MkInterp xs (lst2 ++ ys)
+         (No contra) => Right $ MkInterp xs (lst1 ++ ys) 
 
 interp : Interp -> Either Error (List Val) 
 interp (MkInterp stack []) = Right stack 
 interp interperter = case step interperter of
                                   (Left error) => Left error
                                   (Right interperter') => interp interperter' 
+
+data OneStep : Interp -> Interp -> Type where
+  Step : (i : Interp) -> (i' : Interp) -> (step i = Right i') -> OneStep i i' 
+
+typeOf : Val -> Tp
+typeOf (I32 x) = T32
+typeOf (I64 x) = T64
 
 int1 : Interp
 int1 = MkInterp [I64 1, I64 2] [BinOp Add64]

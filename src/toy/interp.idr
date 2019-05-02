@@ -69,15 +69,58 @@ interp interperter = case step interperter of
                                   (Left error) => Left error
                                   (Right interperter') => interp interperter' 
 
+
 data OneStep : Interp -> Interp -> Type where
   Step : (i : Interp) -> (i' : Interp) -> (step i = Right i') -> OneStep i i' 
 
+data OneStepDec : Interp -> Interp -> Type where
+  DStep : (i : Interp) -> (i' : Interp) -> Dec (step i = Right i') -> OneStepDec i i' 
+
+errorsDiff1 : (Left StackUnderflow = Left TypeError) -> Void
+errorsDiff1 Refl impossible
+
+errorsDiff2 : (Left TypeError = Left StackUnderflow) -> Void
+errorsDiff2 Refl impossible
+
+errorNotSuccess1 : (Left l = Right r) -> Void
+errorNotSuccess1 Refl impossible
+
+errorNotSuccess2 : (Right r = Left l) -> Void
+errorNotSuccess2 Refl impossible
+
+
+checkInterpSame : (x : Interp) -> (y : Interp) -> Dec (x = y)
+checkInterpSame (MkInterp [] []) (MkInterp [] []) = Yes Refl 
+checkInterpSame (MkInterp [] []) (MkInterp [] (x :: xs)) = No ?instrDiff1 
+checkInterpSame (MkInterp [] (x :: xs)) (MkInterp [] []) = No ?instrDiff2 
+checkInterpSame (MkInterp [] (x :: xs)) (MkInterp [] (y :: ys)) = ?checkInterpSame_rhs_2
+checkInterpSame (MkInterp [] ws) (MkInterp (x :: xs) ys) = ?checkInterpSame_rhs_4
+checkInterpSame (MkInterp (x :: zs) ws) (MkInterp xs ys) = ?checkInterpSame_rhs_3
+
+
+checkEInterpSame : (x : Either Error Interp) -> (y : Either Error Interp) -> Dec (x = y)
+checkEInterpSame (Left StackUnderflow) (Left StackUnderflow) = Yes Refl 
+checkEInterpSame (Left TypeError) (Left TypeError) = Yes Refl 
+checkEInterpSame (Left StackUnderflow) (Left TypeError) = No errorsDiff1 
+checkEInterpSame (Left TypeError) (Left StackUnderflow) = No errorsDiff2
+checkEInterpSame (Left l) (Right r) = No errorNotSuccess1 
+checkEInterpSame (Right r) (Left l) = No errorNotSuccess2 
+checkEInterpSame (Right r) (Right x) = ?rhs 
+
+
 typeOf : Val -> Tp
-typeOf (I32 x) = T32
-typeOf (I64 x) = T64
+typeOf (I32 _) = T32
+typeOf (I64 _) = T64
 
 int1 : Interp
 int1 = MkInterp [I64 1, I64 2] [BinOp Add64]
 
 int2 : Interp
 int2 = MkInterp [I64 1] [BinOp Add64]
+
+int3 : Interp
+int3 = MkInterp [I64 3] []
+
+justThreeIsJustThree : (Right (MkInterp [I64 3] [])) = (Right (MkInterp [I64 3] []))
+justThreeIsJustThree = Refl
+

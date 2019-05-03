@@ -1,6 +1,28 @@
 ||| So they aren't really different widths, but we can pretend
 data Val = I32 Integer | I64 Integer
 
+total
+i32Noti64 : I32 x = I64 y -> Void
+i32Noti64 Refl impossible
+
+total
+i32Injective : I32 x = I32 y -> x = y
+i32Injective Refl = Refl
+
+total
+i64Injective : I64 x = I64 y -> x = y
+i64Injective Refl = Refl
+
+DecEq Val where
+    decEq (I32 x) (I32 y) = case decEq x y of
+                                 (Yes Refl) => Yes Refl
+                                 (No contra) => No $ \h => contra (i32Injective h)
+    decEq (I32 x) (I64 y) = No i32Noti64
+    decEq (I64 x) (I32 y) = No (negEqSym i32Noti64)
+    decEq (I64 x) (I64 y) = case decEq x y of
+                                 (Yes Refl) => Yes Refl
+                                 (No contra) => No $ \h => contra (i64Injective h)
+
 mutual
   data BOp = Add64 | Eq64 | Sub64 
            | Add32 | Eq32 | Sub32
@@ -13,8 +35,8 @@ data Error = StackUnderflow | TypeError
 
 record Interp where
   constructor MkInterp
-  stack : List Val 
-  instr : List Instr
+  vs : List Val 
+  es : List Instr
 
 data Tp = T32 | T64
 data IntrpTp = List Tp
@@ -64,7 +86,7 @@ step (MkInterp ((I64 x) :: xs) ((If lst1 lst2) :: ys))
          (No contra) => Right $ MkInterp xs (lst1 ++ ys) 
 
 interp : Interp -> Either Error (List Val) 
-interp (MkInterp stack []) = Right stack 
+interp (MkInterp vs []) = Right vs 
 interp interperter = case step interperter of
                                   (Left error) => Left error
                                   (Right interperter') => interp interperter' 

@@ -12,7 +12,8 @@ import Structure.Indices
 |||
 ||| Expected final stack: [2)
 ifProg1 : Expr
-ifProg1 = [Const (I32Val 1), If (Just I32_t) [Const (I32Val 2)] [Const (I32Val 3)]]
+ifProg1 = [ Const (I32Val 1)
+          , If (Just I32_t) [Const (I32Val 2)] [Const (I32Val 3)]]
 
 ||| ifProg2: This program pushes 1 onto the stack and then runs an if statement.
 |||     This if statement should evaluate the `then` clause and not push any

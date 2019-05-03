@@ -12,7 +12,7 @@ import Data.Bits
 ||| An argument to a memory instruction
 record MemArg where
     constructor MkMemArg
-    offset : Nat
+    offset : Nat     -- TODO: This should be Bits32
     align  : Bits32
 
 %name MemArg memarg

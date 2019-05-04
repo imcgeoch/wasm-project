@@ -39,7 +39,9 @@ record Interp where
   es : List Instr
 
 data Tp = T32 | T64
-data IntrpTp = List Tp
+
+InterpTp : Type
+InterpTp = List Tp
 
 --------------------------------------------------------------------------------
 -----                           INTERP EXECUTION                           -----
@@ -95,6 +97,26 @@ interp interperter = case step interperter of
                                   (Right interperter') => interp interperter'
 
 --------------------------------------------------------------------------------
+-----                              VALIDATION                              -----
+--------------------------------------------------------------------------------
+
+typeCheckInstr : Instr -> InterpTp -> Maybe InterpTp
+typeCheckInstr (BinOp Add64) (T64 :: T64 :: xs) = Just $ T64 :: xs
+typeCheckInstr (BinOp Eq64)  (T64 :: T64 :: xs) = Just $ T32 :: xs
+typeCheckInstr (BinOp Sub64) (T64 :: T64 :: xs) = Just $ T64 :: xs
+typeCheckInstr (BinOp Add32) (T32 :: T32 :: xs) = Just $ T32 :: xs
+typeCheckInstr (BinOp Eq32)  (T32 :: T32 :: xs) = Just $ T32 :: xs
+typeCheckInstr (BinOp Sub32) (T32 :: T32 :: xs) = Just $ T32 :: xs
+typeCheckInstr (UnOp Neg64)  (T64 :: xs)        = Just (T64 :: xs)
+typeCheckInstr (UnOp Neg32)  (T32 :: xs)        = Just (T32 :: xs)
+typeCheckInstr (ConstOp (I32 x)) xs = Just $ T32 :: xs
+typeCheckInstr (ConstOp (I64 x)) xs = Just $ T64 :: xs
+typeCheckInstr (If xs ys) y = ?typeCheckInstr_rhs_4
+typeCheckInstr _ _ = Nothing
+
+typeCheckInterp : Interp -> Maybe InterpTp
+
+--------------------------------------------------------------------------------
 -----                              PREDICATES                              -----
 --------------------------------------------------------------------------------
 
@@ -103,6 +125,12 @@ data OneStep : Interp -> Interp -> Type where
 
 data OneStepDec : Interp -> Interp -> Type where
     DStep : (i : Interp) -> (i' : Interp) -> Dec (step i = Right i') -> OneStepDec i i'
+
+data HasType : Interp -> InterpTp -> Type where
+    HasTp : (i : Interp)
+         -> (tp : InterpTp)
+         -> ((typeCheckInterp i) = Just tp)
+         -> HasType i tp
 
 --------------------------------------------------------------------------------
 -----                       INTERFACES (DecEq, etc)                        -----

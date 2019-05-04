@@ -286,15 +286,19 @@ errorNotSuccess Refl impossible
 -- errorNotSuccess2 : (Right r = Left l) -> Void
 -- errorNotSuccess2 Refl impossible
 
+checkVsSame : (x : List Val) -> (y : List Val) -> Dec (x = y) 
+checkVsSame x y = decEq x y 
+
+checkEsSame : (x : List Instr) -> (y : List Instr) -> Dec (x = y)
+checkEsSame x y = decEq x y 
+
+
 checkInterpSame : (x : Interp) -> (y : Interp) -> Dec (x = y)
-checkInterpSame (MkInterp [] []) (MkInterp [] []) = Yes Refl 
-checkInterpSame (MkInterp [] []) (MkInterp [] (x :: xs)) = No ?instrDiff1 
-checkInterpSame (MkInterp [] (x :: xs)) (MkInterp [] []) = No ?instrDiff2 
-checkInterpSame (MkInterp [] (x :: xs)) (MkInterp [] (y :: ys)) = ?checkInterpSame_rhs_2
-checkInterpSame (MkInterp [] ws) (MkInterp (x :: xs) ys) = ?checkInterpSame_rhs_4
-checkInterpSame (MkInterp (x :: zs) ws) (MkInterp xs ys) = ?checkInterpSame_rhs_3
-
-
+checkInterpSame (MkInterp vs es) (MkInterp vs' es') 
+     = case (decEq vs vs', decEq es es')  of
+       (Yes Refl, Yes Refl) => Yes Refl 
+       (No contra, _) => No $ \h => contra (mkInterpInjectiveVs h) 
+       (_ , No contra) => No $ \h => contra (mkInterpInjectiveEs h) 
 
 checkEInterpSame : (x : Either Error Interp) -> (y : Either Error Interp) -> Dec (x = y)
 checkEInterpSame (Left StackUnderflow) (Left StackUnderflow) = Yes Refl 

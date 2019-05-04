@@ -31,10 +31,87 @@ mutual
   data Instr = BinOp BOp | UnOp UOp | ConstOp Val
              | If (List Instr) (List Instr)
 
+data Error = StackUnderflow | TypeError
+
+record Interp where
+  constructor MkInterp
+  vs : List Val 
+  es : List Instr
+
+data Tp = T32 | T64
+data IntrpTp = List Tp
+
+--------------------------------------------------------------------------------
+-----                           INTERP EXECUTION                           -----
+--------------------------------------------------------------------------------
+
+oneStepBinOp : Val -> Val -> BOp -> Either Error Val
+oneStepBinOp (I32 x) (I32 y) Add32 = Right $ I32 (x + y) 
+oneStepBinOp (I32 x) (I32 y) Sub32 = Right $ I32 (x - y)  
+oneStepBinOp (I32 x) (I32 y) Eq32 =  let val = case decEq x y of
+                                                 (Yes Refl) => 1 
+                                                 (No contra) => 0 
+                                     in Right $ I32 val
+oneStepBinOp (I64 x) (I64 y) Add64 = Right $ I64 (x + y) 
+oneStepBinOp (I64 x) (I64 y) Sub64 = Right $ I64 (x - y)  
+oneStepBinOp (I64 x) (I64 y) Eq64 =  let val = case decEq x y of
+                                                 (Yes Refl) => 1 
+                                                 (No contra) => 0 
+                                     in Right $ I64 val
+oneStepBinOp _ _ _ = Left TypeError 
+
+oneStepUnOp : Val -> UOp -> Either Error Val
+oneStepUnOp (I32 x) Neg32 = Right $ I32 (0 - x)
+oneStepUnOp (I64 x) Neg64 = Right $ I64 (0 - x)
+oneStepUnOp _ _ = Left TypeError
+
+step : Interp ->  Either Error Interp
+step (MkInterp [] []) = ?step_rhs_1
+step (MkInterp xs (ConstOp y :: ys)) = Right $ MkInterp (y :: xs) ys 
+step (MkInterp (x :: xs) []) = ?step_rhs_2
+step (MkInterp (x :: []) ((BinOp y) :: ys)) = Left StackUnderflow 
+step (MkInterp (x :: (x' :: xs)) ((BinOp y) :: ys)) 
+  = case oneStepBinOp x x' y of
+         (Left error) => Left error
+         (Right val) => Right $ MkInterp (val :: xs) ys
+step (MkInterp (x :: xs) ((UnOp y) :: ys)) 
+  = case oneStepUnOp x y of
+         (Left error) => Left error
+         (Right val) => Right $ MkInterp (val :: xs) ys
+step (MkInterp xs ((ConstOp c) :: ys)) = Right $ MkInterp (c :: xs) (ys) 
+step (MkInterp ((I32 x) :: xs) ((If lst1 lst2) :: ys)) 
+  = case decEq x 0 of
+         (Yes Refl) => Right $ MkInterp xs (lst2 ++ ys)
+         (No contra) => Right $ MkInterp xs (lst1 ++ ys) 
+step (MkInterp ((I64 x) :: xs) ((If lst1 lst2) :: ys)) 
+  = case decEq x 0 of
+         (Yes Refl) => Right $ MkInterp xs (lst2 ++ ys)
+         (No contra) => Right $ MkInterp xs (lst1 ++ ys) 
+
+interp : Interp -> Either Error (List Val) 
+interp (MkInterp vs []) = Right vs 
+interp interperter = case step interperter of
+                                  (Left error) => Left error
+                                  (Right interperter') => interp interperter' 
+
+
+--------------------------------------------------------------------------------
+-----                              PREDICATES                              -----
+--------------------------------------------------------------------------------
+
+data OneStep : Interp -> Interp -> Type where
+  Step : (i : Interp) -> (i' : Interp) -> (step i = Right i') -> OneStep i i' 
+
+data OneStepDec : Interp -> Interp -> Type where
+  DStep : (i : Interp) -> (i' : Interp) -> Dec (step i = Right i') -> OneStepDec i i' 
+
+--------------------------------------------------------------------------------
+-----                       INTERFACES (DecEq, etc)                        -----
+--------------------------------------------------------------------------------
+
 -- autogen lemmas to assist implementing DecEq for UOp
 neg64_not_Neg32 : Neg64 = Neg32 -> Void
 neg64_not_Neg32 Refl impossible
-
 
 ||| autogen implementation of DecEq for UOp
 DecEq UOp where
@@ -195,16 +272,6 @@ DecEq Instr where
                               No contra => No $ \h => (contra .  ifInjectiveRight) h )
             No contra => No $ \h => (contra . ifInjectiveLeft) h)
 
-data Error = StackUnderflow | TypeError
-
-record Interp where
-  constructor MkInterp
-  vs : List Val 
-  es : List Instr
-
-data Tp = T32 | T64
-data IntrpTp = List Tp
-
 mkInterpInjectiveVs : (MkInterp vs1 _) = (MkInterp vs2 _) -> vs1 = vs2
 mkInterpInjectiveVs Refl = Refl
 
@@ -214,65 +281,25 @@ mkInterpInjectiveEs Refl = Refl
 DecEq Interp where
     decEq (MkInterp vs es) (MkInterp vs' es') =
         case decEq vs vs' of
-             (Yes Refl) => ?rasdf_3
-             (No contra) => ?rasdf_2
+             (Yes Refl) => case decEq es es' of
+                            Yes Refl => Yes Refl
+                            (No contra) => No $ \h => (contra .  mkInterpInjectiveEs) h
+             (No contra) => No $ \h => (contra . mkInterpInjectiveVs) h
 
+-- autogen lemmas to assist implementing DecEq for Tp
+t32_not_T64 : T32 = T64 -> Void
+t32_not_T64 Refl impossible
 
-oneStepBinOp : Val -> Val -> BOp -> Either Error Val
-oneStepBinOp (I32 x) (I32 y) Add32 = Right $ I32 (x + y) 
-oneStepBinOp (I32 x) (I32 y) Sub32 = Right $ I32 (x - y)  
-oneStepBinOp (I32 x) (I32 y) Eq32 =  let val = case decEq x y of
-                                                 (Yes Refl) => 1 
-                                                 (No contra) => 0 
-                                     in Right $ I32 val
-oneStepBinOp (I64 x) (I64 y) Add64 = Right $ I64 (x + y) 
-oneStepBinOp (I64 x) (I64 y) Sub64 = Right $ I64 (x - y)  
-oneStepBinOp (I64 x) (I64 y) Eq64 =  let val = case decEq x y of
-                                                 (Yes Refl) => 1 
-                                                 (No contra) => 0 
-                                     in Right $ I64 val
-oneStepBinOp _ _ _ = Left TypeError 
+||| autogen implementation of DecEq for Tp
+DecEq Tp where
+    decEq T32 T32 = Yes Refl
+    decEq T32 T64 = No t32_not_T64
+    decEq T64 T32 = No (negEqSym t32_not_T64)
+    decEq T64 T64 = Yes Refl 
 
-oneStepUnOp : Val -> UOp -> Either Error Val
-oneStepUnOp (I32 x) Neg32 = Right $ I32 (0 - x)
-oneStepUnOp (I64 x) Neg64 = Right $ I64 (0 - x)
-oneStepUnOp _ _ = Left TypeError
-
-step : Interp ->  Either Error Interp
-step (MkInterp [] []) = ?step_rhs_1
-step (MkInterp xs (ConstOp y :: ys)) = Right $ MkInterp (y :: xs) ys 
-step (MkInterp (x :: xs) []) = ?step_rhs_2
-step (MkInterp (x :: []) ((BinOp y) :: ys)) = Left StackUnderflow 
-step (MkInterp (x :: (x' :: xs)) ((BinOp y) :: ys)) 
-  = case oneStepBinOp x x' y of
-         (Left error) => Left error
-         (Right val) => Right $ MkInterp (val :: xs) ys
-step (MkInterp (x :: xs) ((UnOp y) :: ys)) 
-  = case oneStepUnOp x y of
-         (Left error) => Left error
-         (Right val) => Right $ MkInterp (val :: xs) ys
-step (MkInterp xs ((ConstOp c) :: ys)) = Right $ MkInterp (c :: xs) (ys) 
-step (MkInterp ((I32 x) :: xs) ((If lst1 lst2) :: ys)) 
-  = case decEq x 0 of
-         (Yes Refl) => Right $ MkInterp xs (lst2 ++ ys)
-         (No contra) => Right $ MkInterp xs (lst1 ++ ys) 
-step (MkInterp ((I64 x) :: xs) ((If lst1 lst2) :: ys)) 
-  = case decEq x 0 of
-         (Yes Refl) => Right $ MkInterp xs (lst2 ++ ys)
-         (No contra) => Right $ MkInterp xs (lst1 ++ ys) 
-
-interp : Interp -> Either Error (List Val) 
-interp (MkInterp vs []) = Right vs 
-interp interperter = case step interperter of
-                                  (Left error) => Left error
-                                  (Right interperter') => interp interperter' 
-
-
-data OneStep : Interp -> Interp -> Type where
-  Step : (i : Interp) -> (i' : Interp) -> (step i = Right i') -> OneStep i i' 
-
-data OneStepDec : Interp -> Interp -> Type where
-  DStep : (i : Interp) -> (i' : Interp) -> Dec (step i = Right i') -> OneStepDec i i' 
+--------------------------------------------------------------------------------
+-----                     STUFF FOR TESTING/TINKERING                      -----
+--------------------------------------------------------------------------------
 
 errorsDiff1 : (Left StackUnderflow = Left TypeError) -> Void
 errorsDiff1 Refl impossible
@@ -285,26 +312,6 @@ errorNotSuccess1 Refl impossible
 
 errorNotSuccess2 : (Right r = Left l) -> Void
 errorNotSuccess2 Refl impossible
-
-
-checkInterpSame : (x : Interp) -> (y : Interp) -> Dec (x = y)
-checkInterpSame (MkInterp [] []) (MkInterp [] []) = Yes Refl 
-checkInterpSame (MkInterp [] []) (MkInterp [] (x :: xs)) = No ?instrDiff1 
-checkInterpSame (MkInterp [] (x :: xs)) (MkInterp [] []) = No ?instrDiff2 
-checkInterpSame (MkInterp [] (x :: xs)) (MkInterp [] (y :: ys)) = ?checkInterpSame_rhs_2
-checkInterpSame (MkInterp [] ws) (MkInterp (x :: xs) ys) = ?checkInterpSame_rhs_4
-checkInterpSame (MkInterp (x :: zs) ws) (MkInterp xs ys) = ?checkInterpSame_rhs_3
-
-
-checkEInterpSame : (x : Either Error Interp) -> (y : Either Error Interp) -> Dec (x = y)
-checkEInterpSame (Left StackUnderflow) (Left StackUnderflow) = Yes Refl 
-checkEInterpSame (Left TypeError) (Left TypeError) = Yes Refl 
-checkEInterpSame (Left StackUnderflow) (Left TypeError) = No errorsDiff1 
-checkEInterpSame (Left TypeError) (Left StackUnderflow) = No errorsDiff2
-checkEInterpSame (Left l) (Right r) = No errorNotSuccess1 
-checkEInterpSame (Right r) (Left l) = No errorNotSuccess2 
-checkEInterpSame (Right r) (Right x) = ?rhs 
-
 
 typeOf : Val -> Tp
 typeOf (I32 _) = T32

@@ -5,3 +5,5 @@
 
 # Vim
 *.swp
+
+__pycache__

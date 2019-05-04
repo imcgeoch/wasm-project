@@ -99,10 +99,10 @@ interp interperter = case step interperter of
 --------------------------------------------------------------------------------
 
 data OneStep : Interp -> Interp -> Type where
-  Step : (i : Interp) -> (i' : Interp) -> (step i = Right i') -> OneStep i i' 
+  Step : (i : Interp) -> (i' : Interp) -> (step i = Right i') -> OneStep i i'
 
 data OneStepDec : Interp -> Interp -> Type where
-  DStep : (i : Interp) -> (i' : Interp) -> Dec (step i = Right i') -> OneStepDec i i' 
+  DStep : (i : Interp) -> (i' : Interp) -> Dec (step i = Right i') -> OneStepDec i i'
 
 --------------------------------------------------------------------------------
 -----                       INTERFACES (DecEq, etc)                        -----
@@ -304,7 +304,7 @@ DecEq Tp where
     decEq T32 T32 = Yes Refl
     decEq T32 T64 = No t32_not_T64
     decEq T64 T32 = No (negEqSym t32_not_T64)
-    decEq T64 T64 = Yes Refl 
+    decEq T64 T64 = Yes Refl
 
 --------------------------------------------------------------------------------
 -----                     STUFF FOR TESTING/TINKERING                      -----
@@ -317,16 +317,16 @@ errorNotSuccess : (Left l = Right r) -> Void
 errorNotSuccess Refl impossible
 
 checkEInterpSame : (x : Either Error Interp) -> (y : Either Error Interp) -> Dec (x = y)
-checkEInterpSame (Left l) (Right r) = No errorNotSuccess 
-checkEInterpSame (Right r) (Left l) = No $ negEqSym errorNotSuccess 
-checkEInterpSame (Left x) (Left y) 
+checkEInterpSame (Left l) (Right r) = No errorNotSuccess
+checkEInterpSame (Right r) (Left l) = No $ negEqSym errorNotSuccess
+checkEInterpSame (Left x) (Left y)
   = case decEq x y of
        Yes Refl => Yes Refl
-       No contra => No $ \h => contra (leftInjective h) 
-checkEInterpSame (Right x) (Right y) 
+       No contra => No $ \h => contra (leftInjective h)
+checkEInterpSame (Right x) (Right y)
   = case decEq x y of
        Yes Refl => Yes Refl
-       No contra => No $ \h => contra (rightInjective h) 
+       No contra => No $ \h => contra (rightInjective h)
 
 typeOf : Val -> Tp
 typeOf (I32 _) = T32

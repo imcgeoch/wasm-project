@@ -295,6 +295,7 @@ checkInterpSame (MkInterp [] ws) (MkInterp (x :: xs) ys) = ?checkInterpSame_rhs_
 checkInterpSame (MkInterp (x :: zs) ws) (MkInterp xs ys) = ?checkInterpSame_rhs_3
 
 
+
 checkEInterpSame : (x : Either Error Interp) -> (y : Either Error Interp) -> Dec (x = y)
 checkEInterpSame (Left StackUnderflow) (Left StackUnderflow) = Yes Refl 
 checkEInterpSame (Left TypeError) (Left TypeError) = Yes Refl 
@@ -302,7 +303,10 @@ checkEInterpSame (Left StackUnderflow) (Left TypeError) = No errorsDiff
 checkEInterpSame (Left TypeError) (Left StackUnderflow) = No $ negEqSym errorsDiff
 checkEInterpSame (Left l) (Right r) = No errorNotSuccess 
 checkEInterpSame (Right r) (Left l) = No $ negEqSym errorNotSuccess 
-checkEInterpSame (Right r) (Right x) = ?rhs 
+checkEInterpSame (Right x) (Right y) 
+  = case checkInterpSame x y of
+       Yes Refl => Yes Refl
+       No contra => No $ \h => contra (rightInjective h) 
 
 
 typeOf : Val -> Tp

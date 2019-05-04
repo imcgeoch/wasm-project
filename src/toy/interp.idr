@@ -212,11 +212,17 @@ mkInterpInjectiveEs : (MkInterp _ es1) = (MkInterp _ es2) -> es1 = es2
 mkInterpInjectiveEs Refl = Refl
 
 DecEq Interp where
-    decEq (MkInterp vs es) (MkInterp vs' es') =
-        case decEq vs vs' of
+    decEq (MkInterp vs es) (MkInterp vs' es') 
+     = case (decEq vs vs', decEq es es')  of
+       (Yes Refl, Yes Refl) => Yes Refl 
+       (No contra, _) => No $ \h => contra (mkInterpInjectiveVs h) 
+       (_ , No contra) => No $ \h => contra (mkInterpInjectiveEs h) 
+
+{-        
+case decEq vs vs' of
              (Yes Refl) => ?rasdf_3
              (No contra) => ?rasdf_2
-
+           -}
 
 oneStepBinOp : Val -> Val -> BOp -> Either Error Val
 oneStepBinOp (I32 x) (I32 y) Add32 = Right $ I32 (x + y) 

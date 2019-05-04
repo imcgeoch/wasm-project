@@ -218,6 +218,16 @@ DecEq Interp where
        (No contra, _) => No $ \h => contra (mkInterpInjectiveVs h) 
        (_ , No contra) => No $ \h => contra (mkInterpInjectiveEs h) 
 
+typNotStack : TypeError = StackUnderflow -> Void
+typNotStack Refl impossible
+
+
+DecEq Error where
+  decEq TypeError TypeError = Yes Refl
+  decEq TypeError StackUnderflow = No typNotStack 
+  decEq StackUnderflow StackUnderflow = Yes Refl
+  decEq StackUnderflow TypeError = No $ negEqSym typNotStack
+
 {-        
 case decEq vs vs' of
              (Yes Refl) => ?rasdf_3
@@ -283,40 +293,19 @@ data OneStepDec : Interp -> Interp -> Type where
 errorsDiff : (Left StackUnderflow = Left TypeError) -> Void
 errorsDiff Refl impossible
 
--- errorsDiff2 : (Left TypeError = Left StackUnderflow) -> Void
--- errorsDiff2 Refl impossible
-
 errorNotSuccess : (Left l = Right r) -> Void
 errorNotSuccess Refl impossible
 
--- errorNotSuccess2 : (Right r = Left l) -> Void
--- errorNotSuccess2 Refl impossible
-
-checkVsSame : (x : List Val) -> (y : List Val) -> Dec (x = y) 
-checkVsSame x y = decEq x y 
-
-checkEsSame : (x : List Instr) -> (y : List Instr) -> Dec (x = y)
-checkEsSame x y = decEq x y 
-
-
 checkInterpSame : (x : Interp) -> (y : Interp) -> Dec (x = y)
 checkInterpSame x y = decEq x y
-     
-{-
-= case (decEq vs vs', decEq es es')  of
-       (Yes Refl, Yes Refl) => Yes Refl 
-       (No contra, _) => No $ \h => contra (mkInterpInjectiveVs h) 
-       (_ , No contra) => No $ \h => contra (mkInterpInjectiveEs h) 
-       -}
-
 
 checkEInterpSame : (x : Either Error Interp) -> (y : Either Error Interp) -> Dec (x = y)
-checkEInterpSame (Left StackUnderflow) (Left StackUnderflow) = Yes Refl 
-checkEInterpSame (Left TypeError) (Left TypeError) = Yes Refl 
-checkEInterpSame (Left StackUnderflow) (Left TypeError) = No errorsDiff 
-checkEInterpSame (Left TypeError) (Left StackUnderflow) = No $ negEqSym errorsDiff
 checkEInterpSame (Left l) (Right r) = No errorNotSuccess 
 checkEInterpSame (Right r) (Left l) = No $ negEqSym errorNotSuccess 
+checkEInterpSame (Left x) (Left y) 
+  = case decEq x y of
+       Yes Refl => Yes Refl
+       No contra => No $ \h => contra (leftInjective h) 
 checkEInterpSame (Right x) (Right y) 
   = case decEq x y of
        Yes Refl => Yes Refl

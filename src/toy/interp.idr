@@ -278,11 +278,11 @@ mkInterpInjectiveEs : (MkInterp _ es1) = (MkInterp _ es2) -> es1 = es2
 mkInterpInjectiveEs Refl = Refl
 
 DecEq Interp where
-    decEq (MkInterp vs es) (MkInterp vs' es') 
-     = case (decEq vs vs', decEq es es')  of
-       (Yes Refl, Yes Refl) => Yes Refl 
-       (No contra, _) => No $ \h => contra (mkInterpInjectiveVs h) 
-       (_ , No contra) => No $ \h => contra (mkInterpInjectiveEs h) 
+    decEq (MkInterp vs es) (MkInterp vs' es') =
+        case (decEq vs vs', decEq es es') of
+            (Yes Refl, Yes Refl) => Yes Refl
+            (No contra, _) => No $ \h => contra (mkInterpInjectiveVs h)
+            (_ , No contra) => No $ \h => contra (mkInterpInjectiveEs h)
 
 typNotStack : TypeError = StackUnderflow -> Void
 typNotStack Refl impossible
@@ -290,7 +290,7 @@ typNotStack Refl impossible
 
 DecEq Error where
   decEq TypeError TypeError = Yes Refl
-  decEq TypeError StackUnderflow = No typNotStack 
+  decEq TypeError StackUnderflow = No typNotStack
   decEq StackUnderflow StackUnderflow = Yes Refl
   decEq StackUnderflow TypeError = No $ negEqSym typNotStack
 

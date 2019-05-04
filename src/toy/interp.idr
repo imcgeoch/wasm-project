@@ -94,7 +94,6 @@ interp interperter = case step interperter of
                                   (Left error) => Left error
                                   (Right interperter') => interp interperter' 
 
-
 --------------------------------------------------------------------------------
 -----                              PREDICATES                              -----
 --------------------------------------------------------------------------------
@@ -279,12 +278,22 @@ mkInterpInjectiveEs : (MkInterp _ es1) = (MkInterp _ es2) -> es1 = es2
 mkInterpInjectiveEs Refl = Refl
 
 DecEq Interp where
-    decEq (MkInterp vs es) (MkInterp vs' es') =
-        case decEq vs vs' of
-             (Yes Refl) => case decEq es es' of
-                            Yes Refl => Yes Refl
-                            (No contra) => No $ \h => (contra .  mkInterpInjectiveEs) h
-             (No contra) => No $ \h => (contra . mkInterpInjectiveVs) h
+    decEq (MkInterp vs es) (MkInterp vs' es') 
+     = case (decEq vs vs', decEq es es')  of
+       (Yes Refl, Yes Refl) => Yes Refl 
+       (No contra, _) => No $ \h => contra (mkInterpInjectiveVs h) 
+       (_ , No contra) => No $ \h => contra (mkInterpInjectiveEs h) 
+
+typNotStack : TypeError = StackUnderflow -> Void
+typNotStack Refl impossible
+
+
+DecEq Error where
+  decEq TypeError TypeError = Yes Refl
+  decEq TypeError StackUnderflow = No typNotStack 
+  decEq StackUnderflow StackUnderflow = Yes Refl
+  decEq StackUnderflow TypeError = No $ negEqSym typNotStack
+
 
 -- autogen lemmas to assist implementing DecEq for Tp
 t32_not_T64 : T32 = T64 -> Void
@@ -301,17 +310,23 @@ DecEq Tp where
 -----                     STUFF FOR TESTING/TINKERING                      -----
 --------------------------------------------------------------------------------
 
-errorsDiff1 : (Left StackUnderflow = Left TypeError) -> Void
-errorsDiff1 Refl impossible
+errorsDiff : (Left StackUnderflow = Left TypeError) -> Void
+errorsDiff Refl impossible
 
-errorsDiff2 : (Left TypeError = Left StackUnderflow) -> Void
-errorsDiff2 Refl impossible
+errorNotSuccess : (Left l = Right r) -> Void
+errorNotSuccess Refl impossible
 
-errorNotSuccess1 : (Left l = Right r) -> Void
-errorNotSuccess1 Refl impossible
-
-errorNotSuccess2 : (Right r = Left l) -> Void
-errorNotSuccess2 Refl impossible
+checkEInterpSame : (x : Either Error Interp) -> (y : Either Error Interp) -> Dec (x = y)
+checkEInterpSame (Left l) (Right r) = No errorNotSuccess 
+checkEInterpSame (Right r) (Left l) = No $ negEqSym errorNotSuccess 
+checkEInterpSame (Left x) (Left y) 
+  = case decEq x y of
+       Yes Refl => Yes Refl
+       No contra => No $ \h => contra (leftInjective h) 
+checkEInterpSame (Right x) (Right y) 
+  = case decEq x y of
+       Yes Refl => Yes Refl
+       No contra => No $ \h => contra (rightInjective h) 
 
 typeOf : Val -> Tp
 typeOf (I32 _) = T32

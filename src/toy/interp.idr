@@ -274,18 +274,17 @@ data OneStep : Interp -> Interp -> Type where
 data OneStepDec : Interp -> Interp -> Type where
   DStep : (i : Interp) -> (i' : Interp) -> Dec (step i = Right i') -> OneStepDec i i' 
 
-errorsDiff1 : (Left StackUnderflow = Left TypeError) -> Void
-errorsDiff1 Refl impossible
+errorsDiff : (Left StackUnderflow = Left TypeError) -> Void
+errorsDiff Refl impossible
 
-errorsDiff2 : (Left TypeError = Left StackUnderflow) -> Void
-errorsDiff2 Refl impossible
+-- errorsDiff2 : (Left TypeError = Left StackUnderflow) -> Void
+-- errorsDiff2 Refl impossible
 
-errorNotSuccess1 : (Left l = Right r) -> Void
-errorNotSuccess1 Refl impossible
+errorNotSuccess : (Left l = Right r) -> Void
+errorNotSuccess Refl impossible
 
-errorNotSuccess2 : (Right r = Left l) -> Void
-errorNotSuccess2 Refl impossible
-
+-- errorNotSuccess2 : (Right r = Left l) -> Void
+-- errorNotSuccess2 Refl impossible
 
 checkInterpSame : (x : Interp) -> (y : Interp) -> Dec (x = y)
 checkInterpSame (MkInterp [] []) (MkInterp [] []) = Yes Refl 
@@ -299,10 +298,10 @@ checkInterpSame (MkInterp (x :: zs) ws) (MkInterp xs ys) = ?checkInterpSame_rhs_
 checkEInterpSame : (x : Either Error Interp) -> (y : Either Error Interp) -> Dec (x = y)
 checkEInterpSame (Left StackUnderflow) (Left StackUnderflow) = Yes Refl 
 checkEInterpSame (Left TypeError) (Left TypeError) = Yes Refl 
-checkEInterpSame (Left StackUnderflow) (Left TypeError) = No errorsDiff1 
-checkEInterpSame (Left TypeError) (Left StackUnderflow) = No errorsDiff2
-checkEInterpSame (Left l) (Right r) = No errorNotSuccess1 
-checkEInterpSame (Right r) (Left l) = No errorNotSuccess2 
+checkEInterpSame (Left StackUnderflow) (Left TypeError) = No errorsDiff 
+checkEInterpSame (Left TypeError) (Left StackUnderflow) = No $ negEqSym errorsDiff
+checkEInterpSame (Left l) (Right r) = No errorNotSuccess 
+checkEInterpSame (Right r) (Left l) = No $ negEqSym errorNotSuccess 
 checkEInterpSame (Right r) (Right x) = ?rhs 
 
 

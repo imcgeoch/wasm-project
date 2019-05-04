@@ -228,11 +228,6 @@ DecEq Error where
   decEq StackUnderflow StackUnderflow = Yes Refl
   decEq StackUnderflow TypeError = No $ negEqSym typNotStack
 
-{-        
-case decEq vs vs' of
-             (Yes Refl) => ?rasdf_3
-             (No contra) => ?rasdf_2
-           -}
 
 oneStepBinOp : Val -> Val -> BOp -> Either Error Val
 oneStepBinOp (I32 x) (I32 y) Add32 = Right $ I32 (x + y) 
@@ -295,9 +290,6 @@ errorsDiff Refl impossible
 
 errorNotSuccess : (Left l = Right r) -> Void
 errorNotSuccess Refl impossible
-
-checkInterpSame : (x : Interp) -> (y : Interp) -> Dec (x = y)
-checkInterpSame x y = decEq x y
 
 checkEInterpSame : (x : Either Error Interp) -> (y : Either Error Interp) -> Dec (x = y)
 checkEInterpSame (Left l) (Right r) = No errorNotSuccess 

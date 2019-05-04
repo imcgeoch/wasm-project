@@ -300,11 +300,15 @@ checkEsSame x y = decEq x y
 
 
 checkInterpSame : (x : Interp) -> (y : Interp) -> Dec (x = y)
-checkInterpSame (MkInterp vs es) (MkInterp vs' es') 
-     = case (decEq vs vs', decEq es es')  of
+checkInterpSame x y = decEq x y
+     
+{-
+= case (decEq vs vs', decEq es es')  of
        (Yes Refl, Yes Refl) => Yes Refl 
        (No contra, _) => No $ \h => contra (mkInterpInjectiveVs h) 
        (_ , No contra) => No $ \h => contra (mkInterpInjectiveEs h) 
+       -}
+
 
 checkEInterpSame : (x : Either Error Interp) -> (y : Either Error Interp) -> Dec (x = y)
 checkEInterpSame (Left StackUnderflow) (Left StackUnderflow) = Yes Refl 
@@ -314,7 +318,7 @@ checkEInterpSame (Left TypeError) (Left StackUnderflow) = No $ negEqSym errorsDi
 checkEInterpSame (Left l) (Right r) = No errorNotSuccess 
 checkEInterpSame (Right r) (Left l) = No $ negEqSym errorNotSuccess 
 checkEInterpSame (Right x) (Right y) 
-  = case checkInterpSame x y of
+  = case decEq x y of
        Yes Refl => Yes Refl
        No contra => No $ \h => contra (rightInjective h) 
 

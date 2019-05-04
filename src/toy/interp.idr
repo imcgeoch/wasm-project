@@ -99,10 +99,10 @@ interp interperter = case step interperter of
 --------------------------------------------------------------------------------
 
 data OneStep : Interp -> Interp -> Type where
-  Step : (i : Interp) -> (i' : Interp) -> (step i = Right i') -> OneStep i i'
+    Step : (i : Interp) -> (i' : Interp) -> (step i = Right i') -> OneStep i i'
 
 data OneStepDec : Interp -> Interp -> Type where
-  DStep : (i : Interp) -> (i' : Interp) -> Dec (step i = Right i') -> OneStepDec i i'
+    DStep : (i : Interp) -> (i' : Interp) -> Dec (step i = Right i') -> OneStepDec i i'
 
 --------------------------------------------------------------------------------
 -----                       INTERFACES (DecEq, etc)                        -----

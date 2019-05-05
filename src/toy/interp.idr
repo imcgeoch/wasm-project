@@ -394,6 +394,13 @@ is_one_step = Step int1 int3 one_is_three
 justThreeIsJustThree : (Right (MkInterp [I64 3] [])) = (Right (MkInterp [I64 3] []))
 justThreeIsJustThree = Refl
 
+-- data HasType : Interp -> InterpTp -> Type where
+--     HasTp : (i : Interp)
+--          -> (tp : InterpTp)
+--          -> ((typeCheckInterp i) = Just tp)
+--          -> HasType i tp
+-- 
 
-
+preservation : OneStep i1 i2 -> HasType i1 t -> HasType i2 t
+preservation (Step i1 i2 prf) (HasTp i1 t x) = ?rhs
 

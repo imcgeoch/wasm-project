@@ -79,9 +79,9 @@ oneStepUnOp (I64 x) Neg64 = Right $ I64 (0 - x)
 oneStepUnOp _ _ = Left TypeError
 
 step : Interp ->  Either Error Interp
-step (MkInterp [] []) = ?step_rhs_1
+step (MkInterp [] []) = Right $ MkInterp [] []
 step (MkInterp xs (ConstOp y :: ys)) = Right $ MkInterp (y :: xs) ys
-step (MkInterp (x :: xs) []) = ?step_rhs_2
+step (MkInterp (x :: xs) []) = Right $ MkInterp (x :: xs) []
 step (MkInterp (x :: []) ((BinOp y) :: ys)) = Left StackUnderflow
 step (MkInterp (x :: (x' :: xs)) ((BinOp y) :: ys))
   = case oneStepBinOp x x' y of
@@ -399,8 +399,18 @@ justThreeIsJustThree = Refl
 --          -> (tp : InterpTp)
 --          -> ((typeCheckInterp i) = Just tp)
 --          -> HasType i tp
--- 
 
-preservation : OneStep i1 i2 -> HasType i1 t -> HasType i2 t
-preservation (Step i1 i2 prf) (HasTp i1 t x) = ?rhs
+preservation : OneStep i i' -> HasType i t -> HasType i' t
+preservation (Step i i' prf) (HasTp i t tp_i_t) = ?rhs
+
+
+
+
+
+
+
+
+
+
+
 

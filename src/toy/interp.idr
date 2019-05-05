@@ -131,9 +131,6 @@ mutual
                                           (Yes prf) => Just tt
                                           (No contra) => Nothing
                (_, _) => Nothing
-
-
-
     typeCheckInstr _ _ = Nothing
 
     typeCheckExpr : List Instr -> InterpTp -> Maybe InterpTp

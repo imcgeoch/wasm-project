@@ -147,19 +147,6 @@ typeCheckInterp : Interp -> Maybe InterpTp
 typeCheckInterp (MkInterp vs es) = typeCheckExpr es (map valToTp vs)
 
 --------------------------------------------------------------------------------
------                              PREDICATES                              -----
---------------------------------------------------------------------------------
-
-data OneStep : Interp -> Interp -> Type where
-    Step : (i : Interp) -> (i' : Interp) -> (step i = Right i') -> OneStep i i'
-
-data HasType : Interp -> InterpTp -> Type where
-    HasTp : (i : Interp)
-         -> (tp : InterpTp)
-         -> ((typeCheckInterp i) = Just tp)
-         -> HasType i tp
-
---------------------------------------------------------------------------------
 -----                       INTERFACES (DecEq, etc)                        -----
 --------------------------------------------------------------------------------
 
@@ -349,7 +336,6 @@ DecEq Error where
   decEq StackUnderflow StackUnderflow = Yes Refl
   decEq StackUnderflow TypeError = No $ negEqSym typNotStack
 
-
 --------------------------------------------------------------------------------
 -----                     STUFF FOR TESTING/TINKERING                      -----
 --------------------------------------------------------------------------------
@@ -384,6 +370,19 @@ int2 = MkInterp [I64 1] [BinOp Add64]
 
 int3 : Interp
 int3 = MkInterp [I64 3] []
+--------------------------------------------------------------------------------
+-----                              PREDICATES                              -----
+--------------------------------------------------------------------------------
+
+data OneStep : Interp -> Interp -> Type where
+    Step : (i : Interp) -> (i' : Interp) -> (step i = Right i') -> OneStep i i'
+
+data HasType : Interp -> InterpTp -> Type where
+    HasTp : (i : Interp)
+         -> (tp : InterpTp)
+         -> ((typeCheckInterp i) = Just tp)
+         -> HasType i tp
+
 
 -- A helper for proving impossibility
 
@@ -413,4 +412,5 @@ justThreeIsJustThree = Refl
 
 preservation : OneStep i i' -> HasType i t -> HasType i' t
 preservation (Step i i' prf) (HasTp i t tp_i_t) = ?rhs
+
 

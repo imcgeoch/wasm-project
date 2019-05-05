@@ -391,6 +391,16 @@ one_is_three = Refl
 is_one_step : OneStep Main.int1 Main.int3
 is_one_step = Step int1 int3 one_is_three
 
+Uninhabited ((step Main.int1) = (Right Main.int2)) where
+  uninhabited Refl impossible
+
+getPrf : OneStep i1 i2 -> (step i1 = (Right i2))
+getPrf (Step i1 i2 prf) = prf 
+
+Uninhabited (OneStep Main.int1 Main.int2) where
+  uninhabited x with (getPrf x)
+   uninhabited (Step _ _ _) | Refl impossible 
+
 justThreeIsJustThree : (Right (MkInterp [I64 3] [])) = (Right (MkInterp [I64 3] []))
 justThreeIsJustThree = Refl
 

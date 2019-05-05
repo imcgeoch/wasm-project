@@ -385,18 +385,28 @@ int2 = MkInterp [I64 1] [BinOp Add64]
 int3 : Interp
 int3 = MkInterp [I64 3] []
 
-one_is_three : step Main.int1 = Right Main.int3
-one_is_three = Refl
-
-is_one_step : OneStep Main.int1 Main.int3
-is_one_step = Step int1 int3 one_is_three
+-- A helper for proving impossibility
 
 view_proof : OneStep i1 i2 -> (step i1 = (Right i2))
 view_proof (Step i1 i2 prf) = prf 
 
+||| Using framework above, we can show that one state follows 
+||| from another. 
+one_is_three : step Main.int1 = Right Main.int3
+one_is_three = Refl
+
+is_one_step : OneStep Main.int1 Main.int3
+is_one_step = Step int1 int3 one_is_three 
+
+-- We don't need to factor the proof onto a second line; Refl suffices
+is_one_step_two : OneStep Main.int1 Main.int3
+is_one_step = Step int1 int3 Refl 
+
+||| We can prove a state does not follow using a view and seeing that
+||| the proof is impossible.
 Uninhabited (OneStep Main.int1 Main.int2) where
   uninhabited x with (view_proof x)
-   uninhabited (Step _ _ _) | Refl impossible 
+   uninhabited _ | Refl impossible 
 
 justThreeIsJustThree : (Right (MkInterp [I64 3] [])) = (Right (MkInterp [I64 3] []))
 justThreeIsJustThree = Refl
@@ -407,7 +417,7 @@ justThreeIsJustThree = Refl
 --          -> ((typeCheckInterp i) = Just tp)
 --          -> HasType i tp
 -- 
-
+  
 preservation : OneStep i1 i2 -> HasType i1 t -> HasType i2 t
 preservation (Step i1 i2 prf) (HasTp i1 t x) = ?rhs
 

@@ -40,6 +40,17 @@ record Interp where
 
 data Tp = T32 | T64
 
+-- autogen lemmas to assist implementing DecEq for Tp
+t32_not_T64 : T32 = T64 -> Void
+t32_not_T64 Refl impossible
+
+||| autogen implementation of DecEq for Tp
+DecEq Tp where
+    decEq T32 T32 = Yes Refl
+    decEq T32 T64 = No t32_not_T64
+    decEq T64 T32 = No (negEqSym t32_not_T64)
+    decEq T64 T64 = Yes Refl
+
 InterpTp : Type
 InterpTp = List Tp
 
@@ -100,21 +111,43 @@ interp interperter = case step interperter of
 -----                              VALIDATION                              -----
 --------------------------------------------------------------------------------
 
-typeCheckInstr : Instr -> InterpTp -> Maybe InterpTp
-typeCheckInstr (BinOp Add64) (T64 :: T64 :: xs) = Just $ T64 :: xs
-typeCheckInstr (BinOp Eq64)  (T64 :: T64 :: xs) = Just $ T32 :: xs
-typeCheckInstr (BinOp Sub64) (T64 :: T64 :: xs) = Just $ T64 :: xs
-typeCheckInstr (BinOp Add32) (T32 :: T32 :: xs) = Just $ T32 :: xs
-typeCheckInstr (BinOp Eq32)  (T32 :: T32 :: xs) = Just $ T32 :: xs
-typeCheckInstr (BinOp Sub32) (T32 :: T32 :: xs) = Just $ T32 :: xs
-typeCheckInstr (UnOp Neg64)  (T64 :: xs)        = Just (T64 :: xs)
-typeCheckInstr (UnOp Neg32)  (T32 :: xs)        = Just (T32 :: xs)
-typeCheckInstr (ConstOp (I32 x)) xs = Just $ T32 :: xs
-typeCheckInstr (ConstOp (I64 x)) xs = Just $ T64 :: xs
-typeCheckInstr (If xs ys) y = ?typeCheckInstr_rhs_4
-typeCheckInstr _ _ = Nothing
+mutual
+    typeCheckInstr : Instr -> InterpTp -> Maybe InterpTp
+    typeCheckInstr (BinOp Add64) (T64 :: T64 :: xs) = Just $ T64 :: xs
+    typeCheckInstr (BinOp Eq64)  (T64 :: T64 :: xs) = Just $ T32 :: xs
+    typeCheckInstr (BinOp Sub64) (T64 :: T64 :: xs) = Just $ T64 :: xs
+    typeCheckInstr (BinOp Add32) (T32 :: T32 :: xs) = Just $ T32 :: xs
+    typeCheckInstr (BinOp Eq32)  (T32 :: T32 :: xs) = Just $ T32 :: xs
+    typeCheckInstr (BinOp Sub32) (T32 :: T32 :: xs) = Just $ T32 :: xs
+    typeCheckInstr (UnOp Neg64)  (T64 :: xs)        = Just (T64 :: xs)
+    typeCheckInstr (UnOp Neg32)  (T32 :: xs)        = Just (T32 :: xs)
+    typeCheckInstr (ConstOp (I32 x)) xs = Just $ T32 :: xs
+    typeCheckInstr (ConstOp (I64 x)) xs = Just $ T64 :: xs
+    typeCheckInstr (If xs ys) (T32 :: ts) =
+      let t_thn = typeCheckExpr xs ts
+          t_els = typeCheckExpr ys ts in
+          case (t_thn, t_els) of
+               (Just tt, Just te) => case decEq tt te of
+                                          (Yes prf) => Just tt
+                                          (No contra) => Nothing
+               (_, _) => Nothing
+
+
+
+    typeCheckInstr _ _ = Nothing
+
+    typeCheckExpr : List Instr -> InterpTp -> Maybe InterpTp
+    typeCheckExpr [] ts = Just ts
+    typeCheckExpr (ins :: es) ts = case typeCheckInstr ins ts of
+                                        Nothing => Nothing
+                                        Just ts' => typeCheckExpr es ts'
+
+valToTp : Val -> Tp
+valToTp (I32 x) = T32
+valToTp (I64 x) = T64
 
 typeCheckInterp : Interp -> Maybe InterpTp
+typeCheckInterp (MkInterp vs es) = typeCheckExpr es (map valToTp vs)
 
 --------------------------------------------------------------------------------
 -----                              PREDICATES                              -----
@@ -122,9 +155,6 @@ typeCheckInterp : Interp -> Maybe InterpTp
 
 data OneStep : Interp -> Interp -> Type where
     Step : (i : Interp) -> (i' : Interp) -> (step i = Right i') -> OneStep i i'
-
-data OneStepDec : Interp -> Interp -> Type where
-    DStep : (i : Interp) -> (i' : Interp) -> Dec (step i = Right i') -> OneStepDec i i'
 
 data HasType : Interp -> InterpTp -> Type where
     HasTp : (i : Interp)
@@ -323,17 +353,6 @@ DecEq Error where
   decEq StackUnderflow TypeError = No $ negEqSym typNotStack
 
 
--- autogen lemmas to assist implementing DecEq for Tp
-t32_not_T64 : T32 = T64 -> Void
-t32_not_T64 Refl impossible
-
-||| autogen implementation of DecEq for Tp
-DecEq Tp where
-    decEq T32 T32 = Yes Refl
-    decEq T32 T64 = No t32_not_T64
-    decEq T64 T32 = No (negEqSym t32_not_T64)
-    decEq T64 T64 = Yes Refl
-
 --------------------------------------------------------------------------------
 -----                     STUFF FOR TESTING/TINKERING                      -----
 --------------------------------------------------------------------------------
@@ -369,6 +388,15 @@ int2 = MkInterp [I64 1] [BinOp Add64]
 int3 : Interp
 int3 = MkInterp [I64 3] []
 
+one_is_three : step Main.int1 = Right Main.int3
+one_is_three = Refl
+
+is_one_step : OneStep Main.int1 Main.int3
+is_one_step = Step int1 int3 one_is_three
+
 justThreeIsJustThree : (Right (MkInterp [I64 3] [])) = (Right (MkInterp [I64 3] []))
 justThreeIsJustThree = Refl
+
+
+
 

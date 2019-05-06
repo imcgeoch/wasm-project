@@ -140,7 +140,7 @@ The following is an (even simpler) example to isolate the issues we are having
 with writing proofs. `foo` should be thought of as `step` above, while `fooLen`
 should be thought of as the typing function.
 
-`foo` lookx through a list and returns a Maybe List, where Nothing is returned
+`foo` looks through a list and returns a Maybe List, where Nothing is returned
 if zero is encountered in the list, and `Just xs` is returned otherwise, where
 `xs` contains the decremented values of the input list.
 

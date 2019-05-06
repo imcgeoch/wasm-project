@@ -132,6 +132,38 @@ preservation : OneStep c1 c2 -> HasType c1 t -> HasType c2 t
 preservation {c1=([], vs)} (Step ([], vs) c2 prf) (HasTp ([], vs) t) = ?preservation_rhs_2
 preservation {c1=(e::es, vs)} (Step (e::es, vs) c2 prf) (HasTp (e::es, vs) t) = ?preservation_rhs_2
 
+--------------------------------------------------------------------------------
+----                              DUMB EXAMPLE                              ----
+--------------------------------------------------------------------------------
+{-
+The following is an (even simpler) example to isolate the issues we are having
+with writing proofs. `foo` should be thought of as `step` above, while `fooLen`
+should be thought of as the typing function.
+
+`foo` lookx through a list and returns a Maybe List, where Nothing is returned
+if zero is encountered in the list, and `Just xs` is returned otherwise, where
+`xs` contains the decremented values of the input list.
+
+
+`fooLen` checks the length of a list after `foo` is run. This includes checking
+if Z is contained in the list (this can be though of as a type checking error),
+in which case `fooLen` returns Nothing, and otherwise returns the length of the
+list, again wrapped in a Just.
+
+HasFooLen is our version of HasType, and FooStep is our version of OneStep.
+
+We proove the fooThm, which states:
+    
+    FooStep xs ys -> HasFooLen xs (S n) -> HasFooLen ys n
+
+This is a kinda hacky version of our program since we aren't really preserving
+anything, we are just making progress towards 0. Further, it isn't claiming
+anything about `HasFooLen xs Z` cases, but it's a useful analogue for now.
+
+The issue I'm having presently is the last line---whenever I try to get it to
+typecheck after matching on one of the proofs it blows up, and I'm not sure why.
+-}
+
 foo : List Nat -> Maybe (List Nat)
 foo [] = Just []
 foo (Z :: xs) = Nothing
@@ -164,11 +196,4 @@ fooThm {xs=[]} {ys=[]} {n = Z} (FStep [] Refl) (HFL [] x) = HFL [] Refl
 fooThm {xs=[]} {ys=[]} {n = (S _)} (FStep [] Refl) (HFL [] Refl) impossible
 fooThm {xs=Z::_} (FStep (Z::_) Refl) (HFL (Z::_) _) impossible
 fooThm {xs=(S k)::zs} {ys} {n=n} (FStep ((S k)::zs) prf) (HFL ((S k)::zs) x) = ?fooThm_rhs_4
-
-
-
-
-
-
-
 

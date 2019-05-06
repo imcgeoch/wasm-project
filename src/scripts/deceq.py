@@ -122,7 +122,10 @@ class DecEqProofWriter:
             sig = "{} : {}".format(name, tp)
             impl = "{} Refl impossible".format(name)
 
-            lemma = '\n'.join([sig, impl])
+            docstring = '''
+||| Auto generated theorem proving that {} is not equal to {}.
+||| Generated to assist in proving {}'''.format(vc1, vc2, name).strip()
+            lemma = '\n'.join([docstring, 'total ' + sig, impl])
             self.not_equals_lemmas[(vc1, vc2)] = (name, lemma)
             case_body = "No {}".format(name)
 
@@ -141,9 +144,12 @@ class DecEqProofWriter:
         num_args = self.vcs[vc]
         for i in range(num_args):
             name = "{}_injective_on_arg{}".format(vc.lower(), i)
+            docstring = '''
+||| Auto generated theorem proving injectivity of value constructor {}.
+||| Generated to assist in proving {}'''.format(vc, name).strip()
             n1, n2, as1, as2 = self.make_arg_strings(num_args, i, 'x')
             typ = "({} {}) = ({} {}) -> {} = {}".format(vc, as1, vc, as2, n1, n2)
-            lem = '\n'.join([ '{} : {}'.format(name, typ), '{} Refl = Refl'.format(name)])
+            lem = '\n'.join([docstring, 'total {} : {}'.format(name, typ), '{} Refl = Refl'.format(name)])
             ls.append(lem)
             self.injective_lemmas[(vc,i)] = (name, lem)
         return ls

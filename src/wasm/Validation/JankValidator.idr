@@ -105,4 +105,4 @@ validate (Const (F64Val _)) opd_stack ctrl_stack = Just (push_opd (Just (FValTp 
 validate Unreachable opd_stack ctrl_stack = unreachable opd_stack ctrl_stack
 validate (Block result_type expr) opd_stack ctrl_stack = ?rhs1
 validate (Loop result_type expr) opd_stack ctrl_stack = ?rhs2
-validate (If result_type expr instr_list) opd_stack ctrl_stack = ?rhs3 
+validate (If result_type expr instr_list) opd_stack ctrl_stack = ?rhs3

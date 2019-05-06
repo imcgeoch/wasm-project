@@ -16,6 +16,7 @@ modules = Structure.Indices
         , Tests.JankInterpTestHelp
         , Tests.JankInterpTest
         , Tests.SamplePrograms
+        , Tests.ValidatorTest
 
         , Validation.JankValidator
 

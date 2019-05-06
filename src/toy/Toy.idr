@@ -191,9 +191,11 @@ emptyWithPosFooLenImpossible (HFL [] Refl) impossible
 Uninhabited (HasFooLen [] (S n)) where
    uninhabited = emptyWithPosFooLenImpossible
 
+total
 fooThm : FooStep xs ys -> HasFooLen xs (S n) -> HasFooLen ys n
-fooThm {xs=[]} {ys=[]} {n = Z} (FStep [] Refl) (HFL [] x) = HFL [] Refl
+fooThm {xs=[]} {ys=[]} {n = Z} (FStep [] Refl) (HFL [] Refl) impossible
 fooThm {xs=[]} {ys=[]} {n = (S _)} (FStep [] Refl) (HFL [] Refl) impossible
 fooThm {xs=Z::_} (FStep (Z::_) Refl) (HFL (Z::_) _) impossible
 fooThm {xs=(S k)::zs} {ys} {n=n} (FStep ((S k)::zs) prf) (HFL ((S k)::zs) x) = ?fooThm_rhs_4
+fooThm fs hfl = ?rhs
 

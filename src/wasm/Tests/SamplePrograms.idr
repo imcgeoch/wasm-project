@@ -13,7 +13,7 @@ import Structure.Indices
 ||| Expected final stack: [2)
 ifProg1 : Expr
 ifProg1 = [ Const (I32Val 1)
-          , If (Just I32_t) [Const (I32Val 2)] [Const (I32Val 3)]]
+          , If [I32_t] [Const (I32Val 2)] [Const (I32Val 3)]]
 
 ||| ifProg2: This program pushes 1 onto the stack and then runs an if statement.
 |||     This if statement should evaluate the `then` clause and not push any
@@ -22,7 +22,7 @@ ifProg1 = [ Const (I32Val 1)
 |||
 ||| Expected final stack: [)
 ifProg2 : Expr
-ifProg2 = [Const (I32Val 1), If Nothing [Const (I32Val 2)] [Const (I32Val 3)]]
+ifProg2 = [Const (I32Val 1), If [] [Const (I32Val 2)] [Const (I32Val 3)]]
 
 ||| storeLocal1: This program stores the I32 const `123` to memory location 0.
 |||
@@ -48,7 +48,7 @@ storeLoadLoadAdd = [ Const (I32Val 13)
 loopProg1 : Expr
 loopProg1 = [ Const (I32Val 5)
             , IStore (ITp W32) (MkMemArg 0 0)
-            , Loop (Just I32_t) [ ILoad (ITp W32) (MkMemArg 0 0)   -- Load x
+            , Loop [I32_t] [ ILoad (ITp W32) (MkMemArg 0 0)   -- Load x
                                 , Const (I32Val 1)                 -- push 1
                                 , IBinOp ISub W32                  -- sub
                                 , IStore (ITp W32) (MkMemArg 0 0)  -- save
@@ -65,7 +65,7 @@ sum = [ Const  (I32Val 5)
       , IStore (ITp W32) (MkMemArg 0 0) -- n
       , Const  (I32Val 0)
       , IStore (ITp W32) (MkMemArg 4 0) -- acc
-      , Loop   (Just I32_t)
+      , Loop   [I32_t]
                [ ILoad  (ITp W32) (MkMemArg 0 0) -- load n
                , ILoad  (ITp W32) (MkMemArg 4 0) -- load acc
                , IBinOp IAdd W32

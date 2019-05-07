@@ -114,16 +114,10 @@ validate_op (Const (F64Val _)) opd_stack ctrl_stack = Just (push_opd (Just F64_t
 validate_op Unreachable opd_stack ctrl_stack = unreachable opd_stack ctrl_stack
 
 validate_op (Block result_type expr) opd_stack ctrl_stack =
-  let ts = case result_type of
-              Just v => [v]
-              Nothing => []
-  in Just (opd_stack, push_ctrl ts ts opd_stack ctrl_stack)
+  Just (opd_stack, push_ctrl result_type result_type opd_stack ctrl_stack)
 
 validate_op (Loop result_type expr) opd_stack ctrl_stack =
-  let ts = case result_type of
-              Just v => [v]
-              Nothing => []
-  in Just (opd_stack, push_ctrl [] ts opd_stack ctrl_stack)
+  Just (opd_stack, push_ctrl [] result_type opd_stack ctrl_stack)
 
 -- when I tried to write If the same way as Loop, I got weird type inference errors???
 -- validate_op (If result_type expr instr_list) opd_stack ctrl_stack =
@@ -134,14 +128,14 @@ validate_op (Loop result_type expr) opd_stack ctrl_stack =
   --       Just (opd_stack1, push_ctrl ts ts opd_stack1 ctrl_stack)
 
 -- But this version, which I expected to be equivalent to the commented one, compiles fine
-validate_op (If result_type expr instr_list) opd_stack ctrl_stack =
-  case result_type of
-    Just v => do
-        (_, opd_stack1) <- pop_opd_expect (Just I32_t) opd_stack ctrl_stack
-        Just (opd_stack1, push_ctrl [v] [v] opd_stack1 ctrl_stack)
-    Nothing => do
-        (_, opd_stack1) <- pop_opd_expect (Just I32_t) opd_stack ctrl_stack
-        Just (opd_stack1, push_ctrl [] [] opd_stack1 ctrl_stack)
+-- validate_op (If result_type expr instr_list) opd_stack ctrl_stack =
+--   case result_type of
+--     Just v => do
+--         (_, opd_stack1) <- pop_opd_expect (Just I32_t) opd_stack ctrl_stack
+--         Just (opd_stack1, push_ctrl [v] [v] opd_stack1 ctrl_stack)
+--     Nothing => do
+--         (_, opd_stack1) <- pop_opd_expect (Just I32_t) opd_stack ctrl_stack
+--         Just (opd_stack1, push_ctrl [] [] opd_stack1 ctrl_stack)
 
 
 validate : List Instr -> OpdStack -> CtrlStack -> Maybe (OpdStack, CtrlStack)

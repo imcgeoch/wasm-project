@@ -28,11 +28,11 @@ testOnePlusOne = let expr = [Const (I32Val 1), Const (I32Val 1), IBinOp IAdd W32
 
 partial
 testIf_1 : IO ()
-testIf_1 = let result = runExpr [Const (I32Val 1), If (Just I32_t) [Const (I32Val 2)] [Const (I32Val 3)]]
+testIf_1 = let result = runExpr [Const (I32Val 1), If [I32_t] [Const (I32Val 2)] [Const (I32Val 3)]]
             in assertResultStack result [I32Val 2]
 
 --- TEST BLOCKS
 
 p : Expr
-p = [Block Nothing []]
+p = [Block [] []]
 

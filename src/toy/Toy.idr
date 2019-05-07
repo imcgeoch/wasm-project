@@ -25,6 +25,10 @@ total
 type' : Val -> Tp
 type' (I32 x) = T32
 
+decBool : (b:Bool) -> Either (b = False) (b = True)
+decBool False = Left Refl
+decBool True = Right Refl
+
 total
 typeOfStack : Stack -> CodeTp
 typeOfStack [] = []
@@ -132,21 +136,11 @@ step : Code -> Maybe Code
 step (Cd [] vs) = Just (Cd [] vs)
 step (Cd (Const v :: es) vs) = Just $ Cd es (v :: vs)
 step (Cd (I32Add :: es) (I32 v :: I32 v' :: vs)) = Just $ Cd es (I32 (v + v') :: vs)
-step (Cd (If thn els ::es) (I32 v :: vs))  = Just $ Cd (if v /= 0 then thn ++ es else els ++ es) vs
+step (Cd (If thn els ::es) (I32 v :: vs))  = if v /= 0 then Just $ Cd (thn ++ es) vs
+                                                       else Just $ Cd (els ++ es) vs
 step _ = Nothing
 
 mutual
-  total
-  typeInstr : Instr -> CodeTp -> Maybe CodeTp
-  typeInstr I32Add (T32 :: T32 :: ts) = Just (T32 :: ts)
-  typeInstr (If thn els) (T32 :: ts) = 
-          case (typeExpr thn ts, typeExpr els ts) of 
-               (Just tt, Just te) => case decEq tt te of
-                                          Yes prf => Just tt
-                                          No contra => Nothing
-               (_, _) => Nothing
-  typeInstr (Const x) ts = Just (T32 :: ts)
-  typeInstr _ _ = Nothing
 
   total
   typeExpr : Expr -> CodeTp -> Maybe CodeTp

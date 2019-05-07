@@ -131,10 +131,9 @@ total
 step : Code -> Maybe Code
 step (Cd [] vs) = Just (Cd [] vs)
 step (Cd (I32Add :: es) []) = Nothing
-step (Cd (Const v :: es) []) = Just $ Cd es [v]
+step (Cd (Const v :: es) vs) = Just $ Cd es (v :: vs)
 step (Cd (If thn els ::es) []) = Nothing
 step (Cd (I32Add :: es) (I32 v :: I32 v' :: vs)) = Just $ Cd es (I32 (v + v') :: vs)
-step (Cd (Const (I32 v) ::es) (I32 v'::vs)) = Just $ Cd es (I32 v :: I32 v' :: vs)
 step (Cd (If thn els ::es) (I32 v :: vs))  = Just $ Cd (if v /= 0 then thn ++ es else els ++ es) vs
 step _ = Nothing
 

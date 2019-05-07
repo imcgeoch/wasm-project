@@ -82,8 +82,8 @@ unreachable opd_stack ((MkCtrlFrame l e height _) :: rest_ctrl_stack) =
     _ => Nothing
 
 
-validate : Instr -> OpdStack -> CtrlStack -> Maybe (OpdStack, CtrlStack)
-validate (IBinOp op w) opd_stack ctrl_stack =
+validate_op : Instr -> OpdStack -> CtrlStack -> Maybe (OpdStack, CtrlStack)
+validate_op (IBinOp op w) opd_stack ctrl_stack =
           case (op, w) of
             -- i32 add
             (IAdd, W32) => do
@@ -93,11 +93,11 @@ validate (IBinOp op w) opd_stack ctrl_stack =
               Just (opd_stack3, ctrl_stack)
             _ => Nothing -- not implemented
 
-validate Drop opd_stack ctrl_stack =
+validate_op Drop opd_stack ctrl_stack =
   do (_, opd_stack1) <- pop_opd opd_stack ctrl_stack
      Just (opd_stack1, ctrl_stack)
 
-validate Select opd_stack ctrl_stack =
+validate_op Select opd_stack ctrl_stack =
   do (_, opd_stack1) <- pop_opd_expect (Just I32_t) opd_stack ctrl_stack
      (t1, opd_stack2) <- pop_opd opd_stack1 ctrl_stack
      (t2, opd_stack3) <- pop_opd_expect t1 opd_stack2 ctrl_stack
@@ -105,27 +105,27 @@ validate Select opd_stack ctrl_stack =
      Just (opd_stack4, ctrl_stack)
 
 
-validate (Const (I32Val _)) opd_stack ctrl_stack = Just (push_opd (Just I32_t) opd_stack, ctrl_stack)
-validate (Const (I64Val _)) opd_stack ctrl_stack = Just (push_opd (Just I64_t) opd_stack, ctrl_stack)
-validate (Const (F32Val _)) opd_stack ctrl_stack = Just (push_opd (Just F32_t) opd_stack, ctrl_stack)
-validate (Const (F64Val _)) opd_stack ctrl_stack = Just (push_opd (Just F64_t) opd_stack, ctrl_stack)
+validate_op (Const (I32Val _)) opd_stack ctrl_stack = Just (push_opd (Just I32_t) opd_stack, ctrl_stack)
+validate_op (Const (I64Val _)) opd_stack ctrl_stack = Just (push_opd (Just I64_t) opd_stack, ctrl_stack)
+validate_op (Const (F32Val _)) opd_stack ctrl_stack = Just (push_opd (Just F32_t) opd_stack, ctrl_stack)
+validate_op (Const (F64Val _)) opd_stack ctrl_stack = Just (push_opd (Just F64_t) opd_stack, ctrl_stack)
 
-validate Unreachable opd_stack ctrl_stack = unreachable opd_stack ctrl_stack
+validate_op Unreachable opd_stack ctrl_stack = unreachable opd_stack ctrl_stack
 
-validate (Block result_type expr) opd_stack ctrl_stack =
+validate_op (Block result_type expr) opd_stack ctrl_stack =
   let ts = case result_type of
               Just v => [v]
               Nothing => []
   in Just (opd_stack, push_ctrl ts ts opd_stack ctrl_stack)
 
-validate (Loop result_type expr) opd_stack ctrl_stack =
+validate_op (Loop result_type expr) opd_stack ctrl_stack =
   let ts = case result_type of
               Just v => [v]
               Nothing => []
   in Just (opd_stack, push_ctrl [] ts opd_stack ctrl_stack)
 
 -- when I tried to write If the same way as Loop, I got weird type inference errors???
--- validate (If result_type expr instr_list) opd_stack ctrl_stack =
+-- validate_op (If result_type expr instr_list) opd_stack ctrl_stack =
   -- let ts = case result_type of
   --             Just v => [v]
   --             Nothing => []
@@ -133,7 +133,7 @@ validate (Loop result_type expr) opd_stack ctrl_stack =
   --       Just (opd_stack1, push_ctrl ts ts opd_stack1 ctrl_stack)
 
 -- But this version, which I expected to be equivalent to the commented one, compiles fine
-validate (If result_type expr instr_list) opd_stack ctrl_stack =
+validate_op (If result_type expr instr_list) opd_stack ctrl_stack =
   case result_type of
     Just v => do
         (_, opd_stack1) <- pop_opd_expect (Just I32_t) opd_stack ctrl_stack
@@ -141,3 +141,11 @@ validate (If result_type expr instr_list) opd_stack ctrl_stack =
     Nothing => do
         (_, opd_stack1) <- pop_opd_expect (Just I32_t) opd_stack ctrl_stack
         Just (opd_stack1, push_ctrl [] [] opd_stack1 ctrl_stack)
+
+
+validate : List Instr -> OpdStack -> CtrlStack -> Maybe (OpdStack, CtrlStack)
+validate [] opd_stack ctrl_stack = Just (opd_stack, ctrl_stack)
+validate (instr::rest) opd_stack ctrl_stack =
+  do (opd_stack1, ctrl_stack1) <- validate_op instr opd_stack ctrl_stack
+     (opd_stack2, ctrl_stack2) <- validate rest opd_stack1 ctrl_stack1
+     Just (opd_stack2, ctrl_stack2)

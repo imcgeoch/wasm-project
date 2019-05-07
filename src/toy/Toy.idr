@@ -25,6 +25,10 @@ total
 type' : Val -> Tp
 type' (I32 x) = T32
 
+decBool : (b:Bool) -> Either (b = False) (b = True)
+decBool False = Left Refl
+decBool True = Right Refl
+
 total
 typeOfStack : Stack -> CodeTp
 typeOfStack [] = []

@@ -194,10 +194,12 @@ pres {c=Cd (I32Add :: es) ((I32 v1) :: (I32 v2)  :: vs)} {d=Cd es0 vs0} {t = t}
             lemma6 : (typeExpr es0 (typeOfStack vs0) = Just t) = rewrite (sym lemma2) in lemma5
         in HasTp (Cd es0 vs0) t lemma6
 
-pres {c=Cd (I32Add :: es) []} {d=Cd es0 vs0} {t = t}
-     (Step (Cd (I32Add :: es) []) (Cd es0 vs0) prf)
-     (HasTp (Cd (I32Add :: es) []) t typexpr_eq_jt) = ?should_be_impossible_1
-pres {c=Cd (I32Add :: es) (v :: [])} {d=Cd es0 vs0} {t = t} (Step (Cd (I32Add :: es) (v :: [])) (Cd es0 vs0) prf) (HasTp (Cd (I32Add :: es) (v :: [])) t typexpr_eq_jt) = ?should_be_impossible_2
+pres {c=Cd (I32Add :: es) []} {d=Cd es0 vs0} {t = t} (Step (Cd (I32Add :: es) []) (Cd es0 vs0) prf) (HasTp (Cd (I32Add :: es) []) t typexpr_eq_jt) =
+  case prf of
+       Refl impossible
+pres {c=Cd (I32Add :: es) ((I32 v) :: [])} {d=Cd es0 vs0} {t = t} (Step (Cd (I32Add :: es) ((I32 v) :: [])) (Cd es0 vs0) prf) (HasTp (Cd (I32Add :: es) ((I32 v) :: [])) t typexpr_eq_jt) =
+  case prf of
+       Refl impossible
 
 pres {c=Cd ((If xs ys) :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd ((If xs ys) :: es) vs) (Cd es0 vs0) prf) (HasTp (Cd ((If xs ys) :: es) vs) t x) = ?pres_if_stmt
 pres {c=Cd ((Const y) :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd ((Const y) :: es) vs) (Cd es0 vs0) prf) (HasTp (Cd ((Const y) :: es) vs) t x) = ?pres_const

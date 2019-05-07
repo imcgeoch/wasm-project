@@ -243,10 +243,16 @@ exInvalidNorm : NormalForm (Cd [Const (I32 7)] []) -> Void
 exInvalidNorm Norm impossible 
 
 data Progress : Code -> Type where
+  ProgTrapped : (c : Code) => (step c = Nothing) -> Progress c
   ProgNormal : NormalForm c -> Progress c
   ProgStep   : (OneStep c c') -> Progress c
 
+total
 progress : HasType c t -> Progress c 
 progress {c = Cd [] vs} (HasTp (Cd [] vs) t prf) = ProgNormal Norm  
-progress {c = Cd (x :: xs) vs} (HasTp (Cd (x :: xs) vs) t prf) = ?progress_rhs_3
+progress {c = Cd (x :: xs) vs} (HasTp cd@(Cd (x :: xs) vs) t prf) 
+  = case (step cd) of
+                 Nothing => ?trapped_rhs 
+                 Just c0 => (let stepPrf : (step cd = Just c0) = ?stepPrf_rhs 
+                               in ?uhh_2)
 

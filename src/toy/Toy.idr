@@ -174,6 +174,10 @@ data OneStep : Code -> Code -> Type where
 data HasType : Code -> CodeTp -> Type where
     HasTp : (c : Code) -> (t : CodeTp) -> (typeCode c = Just t) ->  HasType c t
 
+
+constMoves : typeExpr (Const y :: es) (typeOfStack vs) = typeExpr es (typeOfStack (y :: vs))
+constMoves = ?constMoves_rhs 
+
 total
 pres : OneStep c d -> HasType c t -> HasType d t
 pres {c=Cd [] vs} {d=Cd es0 vs0} {t = t} (Step (Cd [] vs) (Cd es0 vs0) prf) (HasTp (Cd [] vs) t jstacktype_eq_jt) = 
@@ -186,4 +190,12 @@ pres {c=Cd [] vs} {d=Cd es0 vs0} {t = t} (Step (Cd [] vs) (Cd es0 vs0) prf) (Has
 pres {c=Cd (I32Add :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd (I32Add :: es) vs) (Cd es0 vs0) prf) (HasTp (Cd (I32Add :: es) vs) t x) = ?pres_i32add
 
 pres {c=Cd ((If xs ys) :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd ((If xs ys) :: es) vs) (Cd es0 vs0) prf) (HasTp (Cd ((If xs ys) :: es) vs) t x) = ?pres_if_stmt
-pres {c=Cd ((Const y) :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd ((Const y) :: es) vs) (Cd es0 vs0) prf) (HasTp (Cd ((Const y) :: es) vs) t x) = ?pres_const
+pres {c=Cd ((Const y) :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd ((Const y) :: es) vs) (Cd es0 vs0) prf) (HasTp (Cd ((Const y) :: es) vs) t x) 
+   = let new_prf : (Cd es (y :: vs) = Cd es0 vs0 ) = justInjective prf 
+         es_eq_es0 : (es = es0) = cd_injective_on_arg0 new_prf 
+         vs_eq_vs0 : ((y :: vs) = vs0) = cd_injective_on_arg1 new_prf 
+         in HasTp (Cd es0 vs0) t (rewrite (sym es_eq_es0) in 
+                                  rewrite (sym vs_eq_vs0) in ?theprf) 
+
+
+

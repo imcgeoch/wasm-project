@@ -154,7 +154,17 @@ mutual
   total
   typeExpr : Expr -> CodeTp -> Maybe CodeTp
   typeExpr [] ts = Just ts
-  typeExpr (e :: es) ts = (typeInstr e ts) >>= (typeExpr es)
+  typeExpr (I32Add :: es) (T32 :: T32 :: ts) = Just (T32 :: ts)
+  typeExpr ((If thn els) :: es) (T32 :: ts) =
+    case typeExpr thn ts of
+         Nothing => Nothing
+         Just tt => case typeExpr els ts of
+                         Nothing => Nothing
+                         Just te => case decEq tt te of
+                                              Yes prf => Just tt
+                                              No contra => Nothing
+  typeExpr ((Const (I32 x)) :: es) ts = Just $ T32 :: ts
+  typeExpr _ _ = Nothing
 
   total
   typeCode : Code -> Maybe CodeTp
@@ -174,6 +184,8 @@ pres {c=Cd [] vs} {d=Cd es0 vs0} {t = t} (Step (Cd [] vs) (Cd es0 vs0) prf) (Has
       vs_eq_vs0 : (vs = vs0) = cd_injective_on_arg1 cd_nil_vs_eq_cd_es0_vs0
       in rewrite (sym vs_eq_vs0) in
          rewrite (sym nil_eq_es0) in HasTp (Cd [] vs) t jstacktype_eq_jt
+
 pres {c=Cd (I32Add :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd (I32Add :: es) vs) (Cd es0 vs0) prf) (HasTp (Cd (I32Add :: es) vs) t x) = ?pres_i32add
+
 pres {c=Cd ((If xs ys) :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd ((If xs ys) :: es) vs) (Cd es0 vs0) prf) (HasTp (Cd ((If xs ys) :: es) vs) t x) = ?pres_if_stmt
 pres {c=Cd ((Const y) :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd ((Const y) :: es) vs) (Cd es0 vs0) prf) (HasTp (Cd ((Const y) :: es) vs) t x) = ?pres_const

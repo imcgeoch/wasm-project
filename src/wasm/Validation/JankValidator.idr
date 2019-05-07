@@ -21,20 +21,21 @@ CtrlStack = List CtrlFrame
 push_opd : Maybe ValType -> OpdStack -> OpdStack
 push_opd type opd_stack = type :: opd_stack
 
-pop_opd : OpdStack -> CtrlStack -> Maybe (Maybe ValType, OpdStack)
+pop_opd : OpdStack -> CtrlStack -> Maybe (Maybe ValType ,OpdStack)
 pop_opd opd_stack [] = Nothing
-pop_opd opd_stack@(op::rest) ((MkCtrlFrame _ _ height unreachable) :: _) = let l = length opd_stack in
-                                                       case (height, unreachable) of
-                                                         (l, True) => Just (Nothing, opd_stack)
-                                                         (l, False) => Nothing
-                                                         _ => Just (op, rest)
+pop_opd (top :: rest) ((MkCtrlFrame _ _ h unreachable) :: _) =
+    let will_underflow = length (top :: rest) == h in
+        case (will_underflow, unreachable) of
+            (True, True) => Just (Nothing, top :: rest)
+            (True, _) => Nothing
+            _ => Just (top, rest)
 
 pop_opd_expect : Maybe ValType -> OpdStack -> CtrlStack -> Maybe (Maybe ValType, OpdStack)
 pop_opd_expect expect opd_stack ctrl_stack = let actual = pop_opd opd_stack ctrl_stack in
                          case (actual, expect) of
                            (Just (Nothing, ret_opd_stack), _) => Just (expect, ret_opd_stack)
-                           (Just (real_actual, ret_opd_stack), Nothing) => Just (real_actual, ret_opd_stack)
-                           (Just (real_actual, ret_opd_stack), _) => if real_actual /= expect
+                           (Just (popped_type, ret_opd_stack), Nothing) => Just (popped_type, ret_opd_stack)
+                           (Just (popped_type, ret_opd_stack), _) => if popped_type /= expect
                                                                        then Nothing
                                                                        else actual
                            _ => Nothing
@@ -149,3 +150,12 @@ validate (instr::rest) opd_stack ctrl_stack =
   do (opd_stack1, ctrl_stack1) <- validate_op instr opd_stack ctrl_stack
      (opd_stack2, ctrl_stack2) <- validate rest opd_stack1 ctrl_stack1
      Just (opd_stack2, ctrl_stack2)
+
+
+Show CtrlFrame where
+    show (MkCtrlFrame labels ends h unreach) = "Control frame {"
+                                                ++ "label types: " ++ (show labels) ++ ", "
+                                                ++ "end types: " ++ (show ends) ++ ", "
+                                                ++ "height: " ++ (show h) ++ ", "
+                                                ++ "unreachable: " ++ (show unreach)
+                                                ++ "} End Control Frame"

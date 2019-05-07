@@ -22,3 +22,4 @@ modules = Structure.Indices
 
 tests = Tests.JankInterpTest.testOnePlusOne
       , Tests.JankInterpTest.testIf_1
+      , Tests.ValidatorTest.testOnePlusOne

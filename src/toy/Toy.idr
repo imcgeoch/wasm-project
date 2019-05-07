@@ -154,16 +154,17 @@ mutual
   total
   typeExpr : Expr -> CodeTp -> Maybe CodeTp
   typeExpr [] ts = Just ts
-  typeExpr (I32Add :: es) (T32 :: T32 :: ts) = Just (T32 :: ts)
+  typeExpr (I32Add :: es) (T32 :: T32 :: ts) = let ts' = T32 :: ts in
+                                                   typeExpr es ts'
   typeExpr ((If thn els) :: es) (T32 :: ts) =
     case typeExpr thn ts of
          Nothing => Nothing
          Just tt => case typeExpr els ts of
                          Nothing => Nothing
                          Just te => case decEq tt te of
-                                              Yes prf => Just tt
+                                              Yes prf => typeExpr es tt
                                               No contra => Nothing
-  typeExpr ((Const (I32 x)) :: es) ts = Just $ T32 :: ts
+  typeExpr ((Const (I32 x)) :: es) ts = typeExpr es (T32 :: ts)
   typeExpr _ _ = Nothing
 
   total

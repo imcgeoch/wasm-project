@@ -137,17 +137,6 @@ step (Cd (If thn els ::es) (I32 v :: vs))  = if v /= 0 then Just $ Cd (thn ++ es
 step _ = Nothing
 
 mutual
-  total
-  typeInstr : Instr -> CodeTp -> Maybe CodeTp
-  typeInstr I32Add (T32 :: T32 :: ts) = Just (T32 :: ts)
-  typeInstr (If thn els) (T32 :: ts) = 
-          case (typeExpr thn ts, typeExpr els ts) of 
-               (Just tt, Just te) => case decEq tt te of
-                                          Yes prf => Just tt
-                                          No contra => Nothing
-               (_, _) => Nothing
-  typeInstr (Const x) ts = Just (T32 :: ts)
-  typeInstr _ _ = Nothing
 
   total
   typeExpr : Expr -> CodeTp -> Maybe CodeTp

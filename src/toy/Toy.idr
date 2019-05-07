@@ -191,11 +191,10 @@ pres {c=Cd (I32Add :: es) ((I32 v1) :: (I32 v2)  :: vs)} {d=Cd es0 vs0} {t = t}
         in HasTp (Cd es0 vs0) t lemma6
 
 pres {c=Cd (I32Add :: es) []} {d=Cd es0 vs0} {t = t} (Step (Cd (I32Add :: es) []) (Cd es0 vs0) prf) (HasTp (Cd (I32Add :: es) []) t typexpr_eq_jt) =
-  case prf of
-       Refl impossible
+  case prf of Refl impossible
+
 pres {c=Cd (I32Add :: es) ((I32 v) :: [])} {d=Cd es0 vs0} {t = t} (Step (Cd (I32Add :: es) ((I32 v) :: [])) (Cd es0 vs0) prf) (HasTp (Cd (I32Add :: es) ((I32 v) :: [])) t typexpr_eq_jt) =
-  case prf of
-       Refl impossible
+  case prf of Refl impossible
 
 pres {c=Cd ((If thn els) :: es) []} {d=Cd es0 vs0} {t = t} (Step (Cd ((If thn els) :: es) []) (Cd es0 vs0) prf) (HasTp (Cd ((If thn els) :: es) []) t x) =
   case prf of Refl impossible

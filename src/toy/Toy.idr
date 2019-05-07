@@ -246,12 +246,15 @@ data Progress : Code -> Type where
   ProgNormal : NormalForm c -> Progress c
   ProgStep   : (OneStep c c') -> Progress c
 
+holy_shit_this_is_a_dumb_solution : (mc : Maybe Code) -> Either (c ** mc = Just c) (mc = Nothing)
+holy_shit_this_is_a_dumb_solution Nothing = Right Refl
+holy_shit_this_is_a_dumb_solution (Just x) = Left (x ** Refl)
+
 total
 progress : HasType c t -> Progress c 
 progress {c = Cd [] vs} (HasTp (Cd [] vs) t prf) = ProgNormal Norm  
 progress {c = Cd (x :: xs) vs} (HasTp cd@(Cd (x :: xs) vs) t prf) 
-  = case (step cd) of
-                 Nothing => ?trapped_rhs 
-                 Just c0 => (let stepPrf : (step cd = Just c0) = ?stepPrf_rhs 
-                               in ?uhh_2)
+  = case holy_shit_this_is_a_dumb_solution (step cd) of
+            (Left (c ** l)) => ?rhs_1
+            (Right r)       => ?rhs_2
 

@@ -25,6 +25,7 @@ total
 type' : Val -> Tp
 type' (I32 x) = T32
 
+total
 decBool : (b:Bool) -> Either (b = False) (b = True)
 decBool False = Left Refl
 decBool True = Right Refl
@@ -196,7 +197,38 @@ pres {c=Cd (I32Add :: es) ((I32 v) :: [])} {d=Cd es0 vs0} {t = t} (Step (Cd (I32
   case prf of
        Refl impossible
 
-pres {c=Cd ((If xs ys) :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd ((If xs ys) :: es) vs) (Cd es0 vs0) prf) (HasTp (Cd ((If xs ys) :: es) vs) t x) = ?pres_if_stmt
+pres {c=Cd ((If thn els) :: es) []} {d=Cd es0 vs0} {t = t} (Step (Cd ((If thn els) :: es) []) (Cd es0 vs0) prf) (HasTp (Cd ((If thn els) :: es) []) t x) =
+  case prf of Refl impossible
+
+pres {c=Cd ((If thn els) :: es) ((I32 v) :: vs)} {d=Cd es0 vs0} {t = t}
+     (Step (Cd ((If thn els) :: es) ((I32 v) :: vs)) (Cd es0 vs0) prf)
+     (HasTp (Cd ((If thn els) :: es) ((I32 v) :: vs)) t p_tp) =
+       let cond = (not (intToBool (prim__eqBigInt v 0))) in
+         case decBool (not (intToBool (prim__eqBigInt v 0))) of
+              (Left l) =>
+								  let
+											lemma10 : ((els ++ es) = es0) = ?l_lemma10_rhs
+											lemma11 : (vs = vs0) = ?l_lemma11_rhs
+											lemma12 : (typeExpr es0 (typeOfStack vs0) = Just t) = ?l_lemma12_rhs
+									in HasTp (Cd es0 vs0) t lemma12
+              (Right r) =>
+									let 
+											lemma10 : ((thn ++ es) = es0) = ?r_lemma10_rhs
+											lemma12 : (typeExpr es0 (typeOfStack vs0) = Just t) = ?r_lemma12_rhs
+									in ?rhsadsfadf_2
+
+-- THE FOLLOWING IS A PREVIOUS VERSION THAT IS BEING USED FOR SCRAP SNIPPETS
+--                  let applied_if : Maybe Code = ifThenElse cond (Delay (Just (Cd (thn ++ es) vs))) (Delay (Just (Cd (els ++ es) vs)))
+--                      reduced_if : (applied_if = Just (Cd (thn ++ es) vs)) = ?prf -- rewrite (sym cond_true) in prf
+-- 
+--                      lem_jc_eq  : (Just (Cd (thn ++ es) vs) = Just (Cd es0 vs0)) = ?lem_jc_eq_1
+--                      lem_thn_es : (thn ++ es = es0) = ?lem_thn_es_1
+--                  in HasTp (Cd es0 vs0) t ?lemma_t
+--              No contra => 
+--                 let prf_ : (cond = False) = ?trust_me
+--                     
+--                 in HasTp (Cd es0 vs0) t ?lemma_f
+
 pres {c=Cd ((Const (I32 y)) :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd ((Const (I32 y)) :: es) vs) (Cd es0 vs0) prf) (HasTp (Cd ((Const (I32 y)) :: es) vs) t x) 
  = let prf_inj   : (Cd es (I32 y :: vs) = Cd es0 vs0)         = justInjective prf 
        es_eq_es0 : (es = es0)                               = cd_injective_on_arg0 prf_inj

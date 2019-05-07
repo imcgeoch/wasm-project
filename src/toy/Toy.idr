@@ -201,33 +201,30 @@ pres {c=Cd ((If thn els) :: es) []} {d=Cd es0 vs0} {t = t} (Step (Cd ((If thn el
   case prf of Refl impossible
 
 pres {c=Cd ((If thn els) :: es) ((I32 v) :: vs)} {d=Cd es0 vs0} {t = t}
-     (Step (Cd ((If thn els) :: es) ((I32 v) :: vs)) (Cd es0 vs0) prf)
-     (HasTp (Cd ((If thn els) :: es) ((I32 v) :: vs)) t p_tp) =
-       let cond = (not (intToBool (prim__eqBigInt v 0))) in
-         case decBool (not (intToBool (prim__eqBigInt v 0))) of
+      (Step (Cd ((If thn els) :: es) ((I32 v) :: vs)) (Cd es0 vs0) prf)
+      (HasTp (Cd ((If thn els) :: es) ((I32 v) :: vs)) t p_tp) =
+          let cond = (not (intToBool (prim__eqBigInt v 0))) in
+              case decBool (not (intToBool (prim__eqBigInt v 0))) of
               (Left l) =>
-								  let
-											lemma10 : ((els ++ es) = es0) = ?l_lemma10_rhs
-											lemma11 : (vs = vs0) = ?l_lemma11_rhs
-											lemma12 : (typeExpr es0 (typeOfStack vs0) = Just t) = ?l_lemma12_rhs
-									in HasTp (Cd es0 vs0) t lemma12
+                  let 
+                      lemma0 : ((ifThenElse (not (intToBool (prim__eqBigInt v 0))) (Delay (Just (Cd (thn ++ es) vs)))
+                                                  (Delay (Just (Cd (els ++ es) vs)))) = (Just (Cd (els ++ es) vs))) = rewrite l in Refl
+                      lemma1 : ((Just (Cd (els ++ es) vs)) = (Just (Cd es0 vs0))) = rewrite (sym lemma0) in prf
+                      lemma2 : (Cd (els ++ es) vs = Cd es0 vs0) = justInjective lemma1
+                      lemma3 : (vs = vs0) = cd_injective_on_arg1 lemma2
+                      lemma4 : ((els ++ es) = es0) = cd_injective_on_arg0 lemma2
+                      lemma_f : (typeExpr es0 (typeOfStack vs0) = Just t) = ?l_lemma_f_rhs
+                  in HasTp (Cd es0 vs0) t lemma_f
               (Right r) =>
-									let 
-											lemma10 : ((thn ++ es) = es0) = ?r_lemma10_rhs
-											lemma12 : (typeExpr es0 (typeOfStack vs0) = Just t) = ?r_lemma12_rhs
-									in ?rhsadsfadf_2
-
--- THE FOLLOWING IS A PREVIOUS VERSION THAT IS BEING USED FOR SCRAP SNIPPETS
---                  let applied_if : Maybe Code = ifThenElse cond (Delay (Just (Cd (thn ++ es) vs))) (Delay (Just (Cd (els ++ es) vs)))
---                      reduced_if : (applied_if = Just (Cd (thn ++ es) vs)) = ?prf -- rewrite (sym cond_true) in prf
--- 
---                      lem_jc_eq  : (Just (Cd (thn ++ es) vs) = Just (Cd es0 vs0)) = ?lem_jc_eq_1
---                      lem_thn_es : (thn ++ es = es0) = ?lem_thn_es_1
---                  in HasTp (Cd es0 vs0) t ?lemma_t
---              No contra => 
---                 let prf_ : (cond = False) = ?trust_me
---                     
---                 in HasTp (Cd es0 vs0) t ?lemma_f
+                  let 
+                      lemma0 : ((ifThenElse (not (intToBool (prim__eqBigInt v 0))) (Delay (Just (Cd (thn ++ es) vs)))
+                                                  (Delay (Just (Cd (els ++ es) vs)))) = (Just (Cd (thn ++ es) vs))) = rewrite r in Refl
+                      lemma1 : ((Just (Cd (thn ++ es) vs)) = (Just (Cd es0 vs0))) = rewrite (sym lemma0) in prf
+                      lemma2 : (Cd (thn ++ es) vs = Cd es0 vs0) = justInjective lemma1
+                      lemma3 : (vs = vs0) = cd_injective_on_arg1 lemma2
+                      lemma4 : ((thn ++ es) = es0) = cd_injective_on_arg0 lemma2
+                      lemma_f : (typeExpr es0 (typeOfStack vs0) = Just t) = ?r_lemma_f_rhs
+                  in HasTp (Cd es0 vs0) t lemma_f
 
 pres {c=Cd ((Const (I32 y)) :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd ((Const (I32 y)) :: es) vs) (Cd es0 vs0) prf) (HasTp (Cd ((Const (I32 y)) :: es) vs) t x) 
  = let prf_inj   : (Cd es (I32 y :: vs) = Cd es0 vs0)         = justInjective prf 
@@ -252,6 +249,4 @@ data Progress : Code -> Type where
 progress : HasType c t -> Progress c 
 progress {c = Cd [] vs} (HasTp (Cd [] vs) t prf) = ProgNormal Norm  
 progress {c = Cd (x :: xs) vs} (HasTp (Cd (x :: xs) vs) t prf) = ?progress_rhs_3
-
-
 

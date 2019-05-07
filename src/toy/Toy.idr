@@ -174,6 +174,7 @@ data OneStep : Code -> Code -> Type where
 data HasType : Code -> CodeTp -> Type where
     HasTp : (c : Code) -> (t : CodeTp) -> (typeCode c = Just t) ->  HasType c t
 
+
 total
 pres : OneStep c d -> HasType c t -> HasType d t
 pres {c=Cd [] vs} {d=Cd es0 vs0} {t = t} (Step (Cd [] vs) (Cd es0 vs0) prf) (HasTp (Cd [] vs) t jstacktype_eq_jt) = 
@@ -183,7 +184,30 @@ pres {c=Cd [] vs} {d=Cd es0 vs0} {t = t} (Step (Cd [] vs) (Cd es0 vs0) prf) (Has
       in rewrite (sym vs_eq_vs0) in
          rewrite (sym nil_eq_es0) in HasTp (Cd [] vs) t jstacktype_eq_jt
 
-pres {c=Cd (I32Add :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd (I32Add :: es) vs) (Cd es0 vs0) prf) (HasTp (Cd (I32Add :: es) vs) t x) = ?pres_i32add
+pres {c=Cd (I32Add :: es) ((I32 v1) :: (I32 v2)  :: vs)} {d=Cd es0 vs0} {t = t}
+     (Step (Cd (I32Add :: es) ((I32 v1) :: (I32 v2) :: vs)) (Cd es0 vs0) prf)
+     (HasTp (Cd (I32Add :: es) ((I32 v1) :: (I32 v2) :: vs)) t typexpr_eq_jt) =
+        let lemma1 : ((Cd es (I32 (prim__addBigInt v1 v2) :: vs)) = (Cd es0 vs0)) = justInjective prf
+            lemma2 : (es = es0) = cd_injective_on_arg0 lemma1
+            lemma3 : ((I32 (prim__addBigInt v1 v2) :: vs) = vs0) = cd_injective_on_arg1 lemma1
+            lemma4 : (T32 :: typeOfStack vs = typeOfStack vs0) = cong {f=typeOfStack} lemma3
+            lemma5 : (typeExpr es (typeOfStack vs0) = Just t) = rewrite (sym lemma4) in typexpr_eq_jt
+            lemma6 : (typeExpr es0 (typeOfStack vs0) = Just t) = rewrite (sym lemma2) in lemma5
+        in HasTp (Cd es0 vs0) t lemma6
+
+pres {c=Cd (I32Add :: es) []} {d=Cd es0 vs0} {t = t} (Step (Cd (I32Add :: es) []) (Cd es0 vs0) prf) (HasTp (Cd (I32Add :: es) []) t typexpr_eq_jt) =
+  case prf of
+       Refl impossible
+pres {c=Cd (I32Add :: es) ((I32 v) :: [])} {d=Cd es0 vs0} {t = t} (Step (Cd (I32Add :: es) ((I32 v) :: [])) (Cd es0 vs0) prf) (HasTp (Cd (I32Add :: es) ((I32 v) :: [])) t typexpr_eq_jt) =
+  case prf of
+       Refl impossible
 
 pres {c=Cd ((If xs ys) :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd ((If xs ys) :: es) vs) (Cd es0 vs0) prf) (HasTp (Cd ((If xs ys) :: es) vs) t x) = ?pres_if_stmt
-pres {c=Cd ((Const y) :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd ((Const y) :: es) vs) (Cd es0 vs0) prf) (HasTp (Cd ((Const y) :: es) vs) t x) = ?pres_const
+pres {c=Cd ((Const (I32 y)) :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd ((Const (I32 y)) :: es) vs) (Cd es0 vs0) prf) (HasTp (Cd ((Const (I32 y)) :: es) vs) t x) 
+ = let prf_inj   : (Cd es (I32 y :: vs) = Cd es0 vs0)         = justInjective prf 
+       es_eq_es0 : (es = es0)                               = cd_injective_on_arg0 prf_inj
+       vs_eq_vs0 : ((I32 y) :: vs = vs0)                     = cd_injective_on_arg1 prf_inj
+       on_stack  : (T32 :: (typeOfStack vs) = typeOfStack vs0) = cong {f=typeOfStack} vs_eq_vs0 
+         in HasTp (Cd es0 vs0) t (rewrite (sym es_eq_es0) in rewrite (sym on_stack) in x)
+
+

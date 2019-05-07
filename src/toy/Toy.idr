@@ -236,4 +236,22 @@ pres {c=Cd ((Const (I32 y)) :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd ((Const 
        on_stack  : (T32 :: (typeOfStack vs) = typeOfStack vs0) = cong {f=typeOfStack} vs_eq_vs0 
          in HasTp (Cd es0 vs0) t (rewrite (sym es_eq_es0) in rewrite (sym on_stack) in x)
 
+data NormalForm : Code -> Type where
+  Norm : {vs : Stack} -> NormalForm (Cd [] vs)
+
+exValidNorm : NormalForm (Cd [] [])
+exValidNorm = Norm
+
+exInvalidNorm : NormalForm (Cd [Const (I32 7)] []) -> Void
+exInvalidNorm Norm impossible 
+
+data Progress : Code -> Type where
+  ProgNormal : NormalForm c -> Progress c
+  ProgStep   : (OneStep c c') -> Progress c
+
+progress : HasType c t -> Progress c 
+progress {c = Cd [] vs} (HasTp (Cd [] vs) t prf) = ProgNormal Norm  
+progress {c = Cd (x :: xs) vs} (HasTp (Cd (x :: xs) vs) t prf) = ?progress_rhs_3
+
+
 

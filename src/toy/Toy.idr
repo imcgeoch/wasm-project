@@ -127,6 +127,7 @@ data OneStep : Code -> Code -> Type where
 data HasType : Code -> CodeTp -> Type where
     HasTp : (c : Code) -> (t : CodeTp) -> (typeCode c = Just t) ->  HasType c t
 
+<<<<<<< Updated upstream
 preservation : OneStep c c' -> HasType c t -> HasType c' t
 preservation {c=([],vs)} {c'=([],vs')} {t} (Step ([], vs) ([], vs') prf) (HasTp ([], vs) t prf_t) with (step ([], vs))
   preservation {c=([],_)} {c'=([],_')} {t = _} (Step ([], _) ([], _') Refl) (HasTp ([], _) _ _) | Nothing impossible
@@ -143,4 +144,15 @@ preservation {c=(I32Add :: es,vs)} {c'=([],vs')} (Step (I32Add :: es, vs) ([], v
 preservation {c=(Const v :: es,vs)} {c'=([],vs')} (Step (Const v :: es, vs) ([], vs') prf) (HasTp (Const v::es, vs) t prf_t) = ?preservation_rhs_6
 preservation {c=(If thn els :: es,vs)} {c'=([],vs')} (Step (If thn els ::es, vs) ([], vs') prf) (HasTp (If thn els ::es, vs) t prf_t) = ?preservation_rhs_7
 preservation {c=(e :: es,vs)} {c'=(e'::es',vs')} (Step (e::es, vs) (e'::es', vs') prf) (HasTp (e::es, vs) t prf_t) = ?preservation_rhs_1
+=======
+total
+pres : OneStep c d -> HasType c t -> HasType d t
+pres {c=Cd [] vs} {d=Cd es0 vs0} {t = t} (Step (Cd [] vs) (Cd es0 vs0) prf) (HasTp (Cd [] vs) t jstacktype_eq_jt) = 
+  let cd_nil_vs_eq_cd_es0_vs0 : (Cd [] vs = Cd es0 vs0) = justInjective prf
+      nil_eq_es0 : ([] = es0) = cd_injective_on_arg0 cd_nil_vs_eq_cd_es0_vs0
+      vs_eq_vs0 : (vs = vs0) = cd_injective_on_arg1 cd_nil_vs_eq_cd_es0_vs0
+      in rewrite (sym vs_eq_vs0) in
+         rewrite (sym nil_eq_es0) in HasTp (Cd [] vs) t jstacktype_eq_jt
+pres {c=Cd (y :: xs) vs} {d=Cd es0 vs0} {t} (Step (Cd (y :: xs) vs) (Cd es0 vs0) prf) (HasTp (Cd (y :: xs) vs) t x) = ?pres_rhs_2
+>>>>>>> Stashed changes
 

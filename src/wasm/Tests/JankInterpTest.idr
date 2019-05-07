@@ -24,7 +24,7 @@ testOnePlusOne : IO ()
 testOnePlusOne = let expr = [Const (I32Val 1), Const (I32Val 1), IBinOp IAdd W32]
                      result = runExpr expr
                      expected = [I32Val 2]
-                     in assertResultStack result expected 
+                     in assertResultStack result expected
 
 partial
 testIf_1 : IO ()

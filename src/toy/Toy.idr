@@ -174,4 +174,6 @@ pres {c=Cd [] vs} {d=Cd es0 vs0} {t = t} (Step (Cd [] vs) (Cd es0 vs0) prf) (Has
       vs_eq_vs0 : (vs = vs0) = cd_injective_on_arg1 cd_nil_vs_eq_cd_es0_vs0
       in rewrite (sym vs_eq_vs0) in
          rewrite (sym nil_eq_es0) in HasTp (Cd [] vs) t jstacktype_eq_jt
-pres {c=Cd (y :: xs) vs} {d=Cd es0 vs0} {t} (Step (Cd (y :: xs) vs) (Cd es0 vs0) prf) (HasTp (Cd (y :: xs) vs) t x) = ?pres_rhs_2
+pres {c=Cd (I32Add :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd (I32Add :: es) vs) (Cd es0 vs0) prf) (HasTp (Cd (I32Add :: es) vs) t x) = ?pres_i32add
+pres {c=Cd ((If xs ys) :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd ((If xs ys) :: es) vs) (Cd es0 vs0) prf) (HasTp (Cd ((If xs ys) :: es) vs) t x) = ?pres_if_stmt
+pres {c=Cd ((Const y) :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd ((Const y) :: es) vs) (Cd es0 vs0) prf) (HasTp (Cd ((Const y) :: es) vs) t x) = ?pres_const

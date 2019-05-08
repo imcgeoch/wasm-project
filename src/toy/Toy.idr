@@ -149,13 +149,20 @@ mutual
   typeExpr (I32Add :: es) (T32 :: T32 :: ts) = let ts' = T32 :: ts in
                                                    typeExpr es ts'
   typeExpr ((If thn els) :: es) (T32 :: ts) =
-    case typeExpr thn ts of
-         Nothing => Nothing
+    case ((typeExpr thn ts), (typeExpr els ts)) of
+         (Nothing, _) => Nothing 
+         (_, Nothing) => Nothing 
+         (Just tt, Just te) => case decEq tt te of
+                          Yes Refl => typeExpr es tt
+                          No contra => Nothing
+
+{-         Nothing => Nothing
          Just tt => case typeExpr els ts of
                          Nothing => Nothing
                          Just te => case decEq tt te of
                                               Yes prf => typeExpr es tt
                                               No contra => Nothing
+                                              -}
   typeExpr ((Const (I32 x)) :: es) ts = typeExpr es (T32 :: ts)
   typeExpr _ _ = Nothing
 
@@ -163,12 +170,43 @@ mutual
   typeCode : Code -> Maybe CodeTp
   typeCode (Cd es vs) = typeExpr es (typeOfStack vs)
 
+
 data OneStep : Code -> Code -> Type where
     Step : (c : Code) -> (c' : Code) -> (step c = Just c') -> OneStep c c'
 
 data HasType : Code -> CodeTp -> Type where
+
     HasTp : (c : Code) -> (t : CodeTp) -> (typeCode c = Just t) ->  HasType c t
 
+
+--total
+pres2 : OneStep c d -> HasType c t -> HasType d t
+pres2 (Step c d prf) (HasTp c t tp_prf) with (c)
+  pres2 (Step c d prf) (HasTp c t tp_prf) | c_pat with (d)
+    pres2 (Step c d prf) (HasTp c t tp_prf) | c_pat | d_pat with (t)
+      pres2 (Step c d prf) (HasTp c t tp_prf) 
+            | (Cd [] vs) | (Cd es' vs') | xs  = 
+                let lemma0 : (Cd [] vs = Cd es' vs') = justInjective prf
+                    lemma1 : (es' = []) = sym $ cd_injective_on_arg0 lemma0 
+                    lemma2 : (vs' = vs) = sym $ cd_injective_on_arg1 lemma0
+                    in rewrite lemma1 in rewrite lemma2 in HasTp (Cd [] vs) xs tp_prf 
+      pres2 (Step c d prf) (HasTp c t tp_prf) 
+            | (Cd (I32Add :: es) []) | (Cd es' vs') | t_pat = 
+                case prf of    
+                   Refl impossible
+      pres2 (Step c d prf) (HasTp c t tp_prf) 
+            | (Cd (I32Add :: es) (I32 v :: [])) | (Cd es' vs') | t_pat = 
+                case prf of
+                   Refl impossible
+      pres2 (Step c d prf) (HasTp c t tp_prf)  
+            | (Cd (I32Add :: es) (I32 v1 :: (I32 v2 :: vs))) | (Cd es' vs') | t_pat = 
+                let lemma1 : ((Cd es (I32 (prim__addBigInt v1 v2) :: vs)) = (Cd es' vs')) = justInjective prf
+                    lemma2 : (es' = es) = sym $ cd_injective_on_arg0 lemma1
+                    lemma3 : ((I32 (prim__addBigInt v1 v2) :: vs) = vs') = cd_injective_on_arg1 lemma1
+                    lemma4 : ( (typeOfStack vs') = (T32 :: typeOfStack vs) ) = sym $ cong {f=typeOfStack} lemma3
+                    in HasTp (Cd es' vs') t_pat (rewrite lemma2 in rewrite lemma4 in tp_prf) 
+      pres2 (Step c d prf) (HasTp c t tp_prf)  | (Cd ((If thn els) :: es) vs) | d_pat       | t_pat = ?pres2_rhs_4
+      pres2 (Step c d prf) (HasTp c t tp_prf)  | (Cd ((Const x) :: es) vs)    | d_pat       | t_pat = ?pres2_rhs_5
 
 total
 pres : OneStep c d -> HasType c t -> HasType d t
@@ -198,6 +236,7 @@ pres {c=Cd (I32Add :: es) ((I32 v) :: [])} {d=Cd es0 vs0} {t = t} (Step (Cd (I32
 
 pres {c=Cd ((If thn els) :: es) []} {d=Cd es0 vs0} {t = t} (Step (Cd ((If thn els) :: es) []) (Cd es0 vs0) prf) (HasTp (Cd ((If thn els) :: es) []) t x) =
   case prf of Refl impossible
+
 
 pres {c=Cd ((If thn els) :: es) ((I32 v) :: vs)} {d=Cd es0 vs0} {t = t}
       (Step (Cd ((If thn els) :: es) ((I32 v) :: vs)) (Cd es0 vs0) prf)
@@ -232,6 +271,7 @@ pres {c=Cd ((Const (I32 y)) :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd ((Const 
        on_stack  : (T32 :: (typeOfStack vs) = typeOfStack vs0) = cong {f=typeOfStack} vs_eq_vs0 
          in HasTp (Cd es0 vs0) t (rewrite (sym es_eq_es0) in rewrite (sym on_stack) in x)
 
+
 data NormalForm : Code -> Type where
   Norm : {vs : Stack} -> NormalForm (Cd [] vs)
 
@@ -247,11 +287,11 @@ total
 progress : HasType c t -> Progress c 
 progress (HasTp c t prf) with (c)
   progress (HasTp c t prf) | (Cd xs ys) with (t)
-    progress (HasTp c t prf) | (Cd []  ys) | zs = ProgNormal Norm 
-    progress (HasTp c t prf) | (Cd (x :: xs) ys) | (z :: zs) = 
+    progress (HasTp c t prf)  | (Cd []  ys)       | zs = ProgNormal Norm 
+    progress (HasTp c t prf)  | (Cd (x :: xs) ys) | (z :: zs) = 
       case maybe_to_eq (step (Cd (x :: xs) ys)) of
-        Left (c' ** mc) => ProgStep (Step (Cd (x :: xs) ys) c' mc) 
-        Right Refl impossible
+         Left (c' ** mc) => ProgStep (Step (Cd (x :: xs) ys) c' mc) 
+         Right Refl impossible
     progress (HasTp _ _ Refl) | (Cd es (_ :: _) ) | [] impossible
     progress (HasTp _ _ Refl) | (Cd (_ :: _) vs ) | [] impossible
 

@@ -246,12 +246,22 @@ holy_shit_this_is_a_dumb_solution (Just x) = Left (x ** Refl)
 
 total
 progress : HasType c t -> Progress c 
-progress {c = Cd [] vs} (HasTp (Cd [] vs) t prf) = ProgNormal Norm  
-progress {c = Cd (x :: xs) vs} (HasTp (Cd (x :: xs) vs) t prf) 
+progress (HasTp c t prf) with (c)
+  progress (HasTp c t prf) | (Cd xs ys) with (t)
+    progress (HasTp c t prf) | (Cd []  ys) | zs = ProgNormal Norm 
+    progress (HasTp _ _ Refl) | (Cd [] (_ :: _) ) | [] impossible
+    progress (HasTp _ _ Refl) | (Cd (_ :: _) []) | [] impossible
+    progress (HasTp _ _ Refl) | (Cd (_ :: _) (_ :: _)) | [] impossible
+    progress (HasTp c t prf) | (Cd (x :: xs) ys) | (z :: zs) = case holy_shit_this_is_a_dumb_solution (step (Cd (x :: xs) ys)) of
+                                                             (Left (c' ** mc)) => ProgStep (Step (Cd (x :: xs) ys) c' mc) 
+                                                             (Right Refl) impossible
+
+{-
+  --- cheaty trapped version for reference
   = case holy_shit_this_is_a_dumb_solution (step (Cd (x :: xs) vs)) of
             (Left (c0 ** l)) => let onstp = Step (Cd (x :: xs) vs) c0 l in ProgStep onstp 
-            (Right rfl)      => ProgTrapped rfl
-
+            (Right rfl)      => ProgTrapped rfl -- Should be impossible
+            -}
 --------------------------------------------------------------------------------
 ---                             EXAMPLES OF NORM                             ---
 --------------------------------------------------------------------------------

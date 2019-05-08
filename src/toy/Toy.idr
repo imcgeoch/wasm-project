@@ -190,10 +190,16 @@ typed_ite = ITC [Const $ I32 3] [Const $ I32 4] [I32 0]
 
 --typeExpr : Expr -> CodeTp -> Maybe CodeTp
 
+maybe_to_eq : (mx : Maybe _) -> Either (x ** mx = Just x) (mx = Nothing)
+maybe_to_eq Nothing = Right Refl 
+maybe_to_eq (Just x) = Left (x ** Refl) 
+
 ite_same : IfThnCode c thn els vs-> HasType c t -> ((typeExpr thn (typeOfStack vs)) = (typeExpr els (typeOfStack vs)))
-ite_same (ITC thn els vs) (HasTp (Cd ((If thn els) :: es) vs) t prf) with (typeExpr ((If thn els) :: es) (typeOfStack vs))
-  ite_same (ITC _ _ _) (HasTp (Cd ((If _ _) :: _) _) _ Refl) | Nothing impossible
-  ite_same (ITC thn els vs) (HasTp (Cd ((If thn els) :: es) vs) t prf) | (Just x) = ?ite_same_rhs_2
+ite_same (ITC thn els vs) (HasTp (Cd ((If thn els) :: es) vs) t prf) with (t)
+  ite_same (ITC thn els vs) (HasTp (Cd ((If thn els) :: es) vs) t prf) | t_pat with (prf)
+    ite_same (ITC _ _ _) (HasTp (Cd ((If _ _) :: _) _) _ _) | [] | Refl impossible
+    ite_same (ITC thn els vs) (HasTp (Cd ((If thn els) :: es) vs) t prf) | (x :: xs) | p_pat = 
+      ?ite_same_rhs
 
 --total
 pres2 : OneStep c d -> HasType c t -> HasType d t
@@ -229,9 +235,18 @@ pres2 (Step c d prf) (HasTp c t tp_prf) with (c)
                    lemma4 : ((typeOfStack vs') = (T32 :: (typeOfStack vs))) = cong {f=typeOfStack} lemma3  
                    in HasTp (Cd es' vs') t_pat (rewrite lemma2 in rewrite lemma4 in tp_prf)
       pres2 (Step c d prf) (HasTp c t tp_prf)  | (Cd ((If thn els) :: es) vs)  | d_pat      | t_pat = 
-                     ?pres2_rhs_4
+               let tthen = typeExpr thn (typeOfStack vs)
+                   telse = typeExpr els (typeOfStack vs)
+                   lemma1 : (tthen = telse) = ite_same (ITC thn els vs) (HasTp (Cd ((If thn els) :: es) vs) t_pat tp_prf) 
+                   in (case maybe_to_eq tthen of
+                            (Left (x ** jprf)) => (case maybe_to_eq telse of
+                                                        (Left (y ** jprf')) => ?rhs_3
+                                                        (Right nprf') => ?rhs_4)
+                            (Right nprf) => ?rhs_2)
 
-
+--ite_same : IfThnCode c thn els vs-> HasType c t -> ((typeExpr thn (typeOfStack vs)) = (typeExpr els (typeOfStack vs)))
+--ite_same (ITC thn els vs) (HasTp (Cd ((If thn els) :: es) vs) t prf) with (t)
+ 
 total
 pres : OneStep c d -> HasType c t -> HasType d t
 pres {c=Cd [] vs} {d=Cd es0 vs0} {t = t} (Step (Cd [] vs) (Cd es0 vs0) prf) (HasTp (Cd [] vs) t jstacktype_eq_jt) = 
@@ -303,9 +318,6 @@ data Progress : Code -> Type where
   ProgNormal : NormalForm c -> Progress c
   ProgStep   : (OneStep c c') -> Progress c
 
-maybe_to_eq : (mx : Maybe _) -> Either (x ** mx = Just x) (mx = Nothing)
-maybe_to_eq Nothing = Right Refl 
-maybe_to_eq (Just x) = Left (x ** Refl) 
 
 total
 progress : HasType c t -> Progress c 

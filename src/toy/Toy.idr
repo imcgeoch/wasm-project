@@ -235,22 +235,10 @@ pres {c=Cd ((Const (I32 y)) :: es) vs} {d=Cd es0 vs0} {t = t} (Step (Cd ((Const 
 data NormalForm : Code -> Type where
   Norm : {vs : Stack} -> NormalForm (Cd [] vs)
 
-exValidNorm : NormalForm (Cd [] [])
-exValidNorm = Norm
-
-exInvalidNorm : NormalForm (Cd [Const (I32 7)] []) -> Void
-exInvalidNorm Norm impossible 
-
-data Trapped : Code -> Type where
-  Trpd : (c : Code) -> (prf: step c = Nothing) -> Trapped c
-
-
 data Progress : Code -> Type where
-  ProgTrapped : Trapped c -> Progress c
+  ProgTrapped : {c : Code} -> (step c = Nothing) -> Progress c
   ProgNormal : NormalForm c -> Progress c
   ProgStep   : (OneStep c c') -> Progress c
-
-
 
 holy_shit_this_is_a_dumb_solution : (mc : Maybe Code) -> Either (c ** mc = Just c) (mc = Nothing)
 holy_shit_this_is_a_dumb_solution Nothing = Right Refl
@@ -262,8 +250,14 @@ progress {c = Cd [] vs} (HasTp (Cd [] vs) t prf) = ProgNormal Norm
 progress {c = Cd (x :: xs) vs} (HasTp (Cd (x :: xs) vs) t prf) 
   = case holy_shit_this_is_a_dumb_solution (step (Cd (x :: xs) vs)) of
             (Left (c0 ** l)) => let onstp = Step (Cd (x :: xs) vs) c0 l in ProgStep onstp 
-            (Right rfl)       => let trpd = Trpd (Cd (x :: xs) vs) rfl 
-                                  in ProgTrapped trpd 
+            (Right rfl)      => ProgTrapped rfl
 
+--------------------------------------------------------------------------------
+---                             EXAMPLES OF NORM                             ---
+--------------------------------------------------------------------------------
+exValidNorm : NormalForm (Cd [] [])
+exValidNorm = Norm
 
+exInvalidNorm : NormalForm (Cd [Const (I32 7)] []) -> Void
+exInvalidNorm Norm impossible 
 

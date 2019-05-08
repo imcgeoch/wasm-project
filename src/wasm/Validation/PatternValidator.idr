@@ -43,3 +43,8 @@ validate ((If res thn els) :: is) (I32_t :: ts) labs =
                         Yes prf => validate is (res ++ ts) labs
 validate (Nop :: is) ts labs = validate is ts labs
 validate _ _ _ = Nothing
+
+check_block : (e : Expr) -> (ts : TypeStack) -> (ls : Labels) -> 
+              (ts0 : TypeStack) -> ((validate e ts ls) = Just ts0)
+
+

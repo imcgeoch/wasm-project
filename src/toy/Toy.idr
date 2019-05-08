@@ -205,7 +205,7 @@ pres {c=Cd ((If thn els) :: es) ((I32 v) :: vs)} {d=Cd es0 vs0} {t = t}
           let cond = (not (intToBool (prim__eqBigInt v 0))) in
               case decBool (not (intToBool (prim__eqBigInt v 0))) of
               (Left l) =>
-                  let 
+                  let
                       lemma0 : ((ifThenElse (not (intToBool (prim__eqBigInt v 0))) (Delay (Just (Cd (thn ++ es) vs)))
                                                   (Delay (Just (Cd (els ++ es) vs)))) = (Just (Cd (els ++ es) vs))) = rewrite l in Refl
                       lemma1 : ((Just (Cd (els ++ es) vs)) = (Just (Cd es0 vs0))) = rewrite (sym lemma0) in prf
@@ -215,7 +215,7 @@ pres {c=Cd ((If thn els) :: es) ((I32 v) :: vs)} {d=Cd es0 vs0} {t = t}
                       lemma_f : (typeExpr es0 (typeOfStack vs0) = Just t) = ?l_lemma_f_rhs
                   in HasTp (Cd es0 vs0) t lemma_f
               (Right r) =>
-                  let 
+                  let
                       lemma0 : ((ifThenElse (not (intToBool (prim__eqBigInt v 0))) (Delay (Just (Cd (thn ++ es) vs)))
                                                   (Delay (Just (Cd (els ++ es) vs)))) = (Just (Cd (thn ++ es) vs))) = rewrite r in Refl
                       lemma1 : ((Just (Cd (thn ++ es) vs)) = (Just (Cd es0 vs0))) = rewrite (sym lemma0) in prf

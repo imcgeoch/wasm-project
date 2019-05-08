@@ -9,8 +9,8 @@ validate: Expr -> List ValType -> Maybe (List ValType)
 validate [] ts = Just ts
 validate ((Const (I32Val _)) :: is) ts = validate is (I32_t :: ts)
 validate ((Const (I64Val _)) :: is) ts = validate is (I64_t :: ts)
-validate ((Const (F32Val _)) :: is) ts = validate is (F32_t :: ts)
-validate ((Const (F64Val _)) :: is) ts = validate is (F64_t :: ts)
+-- validate ((Const (F32Val _)) :: is) ts = validate is (F32_t :: ts)
+-- validate ((Const (F64Val _)) :: is) ts = validate is (F64_t :: ts)
 validate ((IBinOp IAdd W32) :: is) ((IValTp (ITp W32)) :: (IValTp (ITp W32)) :: ts) =
     validate is (I32_t :: ts)
 validate ((IBinOp IAdd W64) :: is) ((IValTp (ITp W64)) :: (IValTp (ITp W64)) :: ts) =

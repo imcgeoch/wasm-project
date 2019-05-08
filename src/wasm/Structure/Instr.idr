@@ -10,12 +10,12 @@ import Data.Bits
 %access public export
 
 ||| An argument to a memory instruction
-record MemArg where
-    constructor MkMemArg
-    offset : Nat     -- TODO: This should be Bits32
-    align  : Bits32
+-- record MemArg where
+--     constructor MkMemArg
+--     offset : Nat     -- TODO: This should be Bits32
+--     align  : Bits32
 
-%name MemArg memarg
+-- %name MemArg memarg
 
 ||| Wasm computations manipulate values of the four basic types.
 |||
@@ -40,10 +40,10 @@ mutual
                | IBinOp   IBinaryOp      Width
                -- | FBinOp   FBinaryOp      Width
                -- Int Test instructions
-               | ITest    ITestOp        Width
+               -- | ITest    ITestOp        Width
                -- Int Relational Ops
-               | IRel     IRelationalOp  Width
-               | FRel     FRelationalOp  Width
+               -- | IRel     IRelationalOp  Width
+               -- | FRel     FRelationalOp  Width
                -- Conversion Instructions
                -- | I32WrapI64
                -- | I64ExtendI32  Sign
@@ -53,8 +53,8 @@ mutual
                -- | FConvertI     (FloatType w) (IntType   w) Sign
                -- | IReinterpretF (IntType   w) (FloatType w)
                -- | FReinterpretI (FloatType w) (IntType   w)
-               | Drop
-               | Select
+               -- | Drop
+               -- | Select
                -- | LocalGet  LocalIdx
                -- | LocalSet  LocalIdx
                -- | LocalTee  LocalIdx
@@ -91,56 +91,56 @@ mutual
                -- | FnCall_Indirect TypeIdx
 
 
-    data IUnaryOp = Clz
-                  | Ctz
-                  | Popcnt
+    -- data IUnaryOp = Clz
+    --               | Ctz
+    --               | Popcnt
 
-    data FUnaryOp = Abs
-                  | Neg
-                  | Sqrt
-                  | Ceil
-                  | Floor
-                  | Trunc
-                  | Nearest
+    -- data FUnaryOp = Abs
+    --               | Neg
+    --               | Sqrt
+    --               | Ceil
+    --               | Floor
+    --               | Trunc
+    --               | Nearest
 
-    data Sign = Signed | Unsigned
+    -- data Sign = Signed | Unsigned
 
     data IBinaryOp = IAdd
                    | ISub
                    | IMul
-                   | IDiv Sign
-                   | IRem Sign
-                   | And
-                   | Or
-                   | Xor
-                   | Shl
-                   | Shr Sign
-                   | Rotl
-                   | Rotr
+                   -- | IDiv Sign
+                   -- | IRem Sign
+                   -- | And
+                   -- | Or
+                   -- | Xor
+                   -- | Shl
+                   -- | Shr Sign
+                   -- | Rotl
+                   -- | Rotr
 
-    data FBinaryOp = FAdd
-                   | FSub
-                   | FMul
-                   | FDiv
-                   | FMin
-                   | FMax
-                   | FCopySign
+    -- data FBinaryOp = FAdd
+    --                | FSub
+    --                | FMul
+                   -- | FDiv
+                   -- | FMin
+                   -- | FMax
+                   -- | FCopySign
 
-    data ITestOp = Eqz
+    -- data ITestOp = Eqz
 
-    data IRelationalOp = IEq
-                       | INe
-                       | ILt Sign
-                       | IGt Sign
-                       | ILe Sign
-                       | IGe Sign
+    -- data IRelationalOp = IEq
+    --                    | INe
+    --                    | ILt Sign
+    --                    | IGt Sign
+    --                    | ILe Sign
+    --                    | IGe Sign
 
-    data FRelationalOp = FEq
-                       | FNe
-                       | FLt
-                       | FGt
-                       | FLe
-                       | FGe
+    -- data FRelationalOp = FEq
+    --                    | FNe
+    --                    | FLt
+    --                    | FGt
+    --                    | FLe
+    --                    | FGe
 
 
 
@@ -153,55 +153,55 @@ mutual
 
 %name Instr instr
 %name Expr expr
-%name IUnaryOp op
-%name FUnaryOp op
+-- %name IUnaryOp op
+-- %name FUnaryOp op
 %name IBinaryOp op
-%name FBinaryOp op
-%name IRelationalOp op
-%name FRelationalOp op
-%name Sign sx
-%name ITestOp op
+-- %name FBinaryOp op
+-- %name IRelationalOp op
+-- %name FRelationalOp op
+-- %name Sign sx
+-- %name ITestOp op
 
 Show Val where
     show (I32Val x) = "(i32 " ++ (show x) ++ ")"
     show (I64Val x) = "(i64 " ++ (show x) ++ ")"
-    show (F32Val x) = "(f32 ???)"
-    show (F64Val x) = "(f64 ???)"
+    -- show (F32Val x) = "(f32 ???)"
+    -- show (F64Val x) = "(f64 ???)"
 
-Show IUnaryOp where
-    show Clz = "clz"
-    show Ctz = "ctz"
-    show Popcnt = "popcnt"
+-- Show IUnaryOp where
+--     show Clz = "clz"
+--     show Ctz = "ctz"
+--     show Popcnt = "popcnt"
 
-Show FUnaryOp where
-    show Abs = "abs"
-    show Neg = "neg"
-    show Sqrt = "sqrt"
-    show Ceil = "ceil"
-    show Floor = "floor"
-    show Trunc = "trunc"
-    show Nearest = "nearest"
+-- Show FUnaryOp where
+--     show Abs = "abs"
+--     show Neg = "neg"
+--     show Sqrt = "sqrt"
+--     show Ceil = "ceil"
+--     show Floor = "floor"
+--     show Trunc = "trunc"
+--     show Nearest = "nearest"
 
-Show Sign where
-    show Signed = "s"
-    show Unsigned = "u"
+-- Show Sign where
+--     show Signed = "s"
+--     show Unsigned = "u"
 
-Show MemArg where
-    show (MkMemArg offset align) = "(memarg " ++ (show offset) ++ "," ++ (show align) ++ ")"
+-- Show MemArg where
+--     show (MkMemArg offset align) = "(memarg " ++ (show offset) ++ "," ++ (show align) ++ ")"
 
 Show IBinaryOp where
     show IAdd = "iadd"
     show ISub = "isub"
     show IMul = "imul"
-    show (IDiv sx) = "idiv" ++ (show sx)
-    show (IRem sx) = "irem" ++ (show sx)
-    show And = "iand"
-    show Or = "ior"
-    show Xor = "ixor"
-    show Shl = "ishl"
-    show (Shr sx) = "ishr" ++ (show sx)
-    show Rotl = "irotl"
-    show Rotr = "irotr"
+    -- show (IDiv sx) = "idiv" ++ (show sx)
+    -- show (IRem sx) = "irem" ++ (show sx)
+    -- show And = "iand"
+    -- show Or = "ior"
+    -- show Xor = "ixor"
+    -- show Shl = "ishl"
+    -- show (Shr sx) = "ishr" ++ (show sx)
+    -- show Rotl = "irotl"
+    -- show Rotr = "irotr"
 
 total
 Show Instr where
@@ -210,9 +210,9 @@ Show Instr where
     -- show (FUnOp op w) = (show op) ++ "_" ++ (show w)
     show (IBinOp op w) = (show op) ++ "_" ++ (show w)
     -- show (FBinOp op w) = "<fbinop>"
-    show (ITest op w) = "<itestop>"
-    show (IRel op w) = "<irelop>"
-    show (FRel op w) = "<frelop>"
+    -- show (ITest op w) = "<itestop>"
+    -- show (IRel op w) = "<irelop>"
+    -- show (FRel op w) = "<frelop>"
     -- show I32WrapI64 = "<i32wrapi64>"
     -- show (I64ExtendI32 sx) = "<i64extendi32 " ++ (show sx) ++ ">"
     -- show (ITruncF int_t float_t sx) = "<itruncf>"
@@ -238,17 +238,17 @@ Show Instr where
     --show (IStore8 int_t sx memarg) = ?rhs_31
     --show (IStore16 int_t sx memarg) = ?rhs_32
     --show (I64Store32 sx memarg) = ?rhs_33
-    show MemorySize = "mem_size"
-    show MemoryGrow = "mem_grow"
+    -- show MemorySize = "mem_size"
+    -- show MemoryGrow = "mem_grow"
     show Nop = "nop"
-    show Unreachable = "unreachable"
+    -- show Unreachable = "unreachable"
     show (Block rt xs) = assert_total $ "(block " ++ (show rt) ++ ", " ++ (show xs) ++ ")"
-    show (Loop x xs)   = assert_total $ "(loop " ++ (show x) ++ ", " ++ (show xs) ++ ")"
+    -- show (Loop x xs)   = assert_total $ "(loop " ++ (show x) ++ ", " ++ (show xs) ++ ")"
     show (If x xs ys)  = assert_total $ "(if " ++ (show x) ++ " then " ++ (show xs) ++ " else " ++ (show ys) ++ ")"
-    show (Br x) = "br"
-    show (BrIf x) = "(br-if " ++ (show x) ++ ")"
+    -- show (Br x) = "br"
+    -- show (BrIf x) = "(br-if " ++ (show x) ++ ")"
     -- show (BrTable xs x) = ?rhs_43
-    show Return = "return"
+    -- show Return = "return"
     -- show (FnCall x) = ?rhs_45
     -- show (FnCall_Indirect x) = ?rhs_46
     show _ = "(instr not showable yet!)"

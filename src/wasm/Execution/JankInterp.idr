@@ -107,43 +107,43 @@ mutual
                      I32Val val :: vs' => MkInterp config vs' (Ins (Block tp (if val /= 0 then thn else els)) :: expr) StatusRunning
                      _                 => mk_error $ Err_StackTypeError "If cond must be I32"
 
-             Loop tp es' => with_exec_ins $ AdIns (Label 0 [instr] [] (map toExecInstr es'))
+             -- Loop tp es' => with_exec_ins $ AdIns (Label 0 [instr] [] (map toExecInstr es'))
 
-             Br l => with_admin_ins (Breaking l stack)
+             -- Br l => with_admin_ins (Breaking l stack)
 
-             BrIf l => case stack of
-                      [] => mk_error $ Err_StackUnderflow "BrIf called on empty stack"
-                      I32Val val :: vs' => if val /= 0
-                                              then with_admin_ins (Breaking l vs')
-                                              else MkInterp config vs' expr StatusRunning
-                      _ => mk_error $ Err_StackTypeError "BrIf applied to invalid type"
+             -- BrIf l => case stack of
+             --          [] => mk_error $ Err_StackUnderflow "BrIf called on empty stack"
+             --          I32Val val :: vs' => if val /= 0
+             --                                  then with_admin_ins (Breaking l vs')
+             --                                  else MkInterp config vs' expr StatusRunning
+             --          _ => mk_error $ Err_StackTypeError "BrIf applied to invalid type"
 
              -- XXX: Treating mem as first mems instance!!! Broken for multiple modules!!!
-             ILoad (ITp w) (MkMemArg offset align) =>
-                       case (mems config) of
-                            MkMemInst datums max =>
-                                  case w of
-                                         W32 => push_val (I32Val (bytesToB32 (take 4 (drop offset datums))))
-                                         W64 => push_val (I64Val (bytesToB64 (take 8 (drop offset datums))))
-             IStore (ITp w) (MkMemArg offset align) =>
-                        (case mems config of
-                             MkMemInst datums max => (case stack of
-                                          [] => mk_error (Err_StackUnderflow "Called store on empty stack")
-                                          I32Val x :: xs =>
-                                                case w of
-                                                    W32 => case updateWithSpliceAt datums offset (b32ToBytes x) of
-                                                                Nothing => mk_error (Err_MemoryAccess "Memory update failed")
-                                                                Just new_datums  => let new_mem = MkMemInst new_datums max
-                                                                                        new_conf = MkStore [] [] new_mem [] in
-                                                                                        MkInterp new_conf xs expr StatusRunning
-                                                    _ => mk_error (Err_StackTypeError ((show instr) ++ " applied to I64"))
-                                          I64Val x :: xs => case w of
-                                                                 W32 => mk_error (Err_StackTypeError ((show instr) ++ " applied to I32"))
-                                                                 _ => ?oneStepInstr_rhs_6
-                                          _ => ?oneadsfasdfasflkjlkj
-                        ))
+             -- ILoad (ITp w) (MkMemArg offset align) =>
+             --           case (mems config) of
+             --                MkMemInst datums max =>
+             --                      case w of
+             --                             W32 => push_val (I32Val (bytesToB32 (take 4 (drop offset datums))))
+             --                             W64 => push_val (I64Val (bytesToB64 (take 8 (drop offset datums))))
+             -- IStore (ITp w) (MkMemArg offset align) =>
+             --            (case mems config of
+             --                 MkMemInst datums max => (case stack of
+             --                              [] => mk_error (Err_StackUnderflow "Called store on empty stack")
+             --                              I32Val x :: xs =>
+             --                                    case w of
+             --                                        W32 => case updateWithSpliceAt datums offset (b32ToBytes x) of
+             --                                                    Nothing => mk_error (Err_MemoryAccess "Memory update failed")
+             --                                                    Just new_datums  => let new_mem = MkMemInst new_datums max
+             --                                                                            new_conf = MkStore [] [] new_mem [] in
+             --                                                                            MkInterp new_conf xs expr StatusRunning
+             --                                        _ => mk_error (Err_StackTypeError ((show instr) ++ " applied to I64"))
+             --                              I64Val x :: xs => case w of
+             --                                                     W32 => mk_error (Err_StackTypeError ((show instr) ++ " applied to I32"))
+             --                                                     _ => ?oneStepInstr_rhs_6
+             --                              _ => ?oneadsfasdfasflkjlkj
+             --            ))
               
-             Unreachable => trapped
+             -- Unreachable => trapped
              Nop => do_nothing
              -- IUnOp op w => ?oneStepInstr_rhs_2
              -- FUnOp op w => ?oneStepInstr_rhs_3
@@ -174,26 +174,26 @@ mutual
              -- Return => ?oneStepInstr_rhs_36
              _ => ?oneStepInstr_rhs_1
 
-    oneStepIUnOp : Stack -> IUnaryOp -> Either InterpError Stack
-    oneStepIUnOp [] _           = Left (Err_StackUnderflow "Unop on empty stack")
-    oneStepIUnOp (val :: xs) op =
-        case op of
-             Clz => (case val of
-                          (I32Val bits) => let top : Bits32 = clz32 bits in
-                                                    Right $ I32Val top :: xs
-                          (I64Val bits) => let top : Bits32 = clz64 bits in
-                                                    Right $ I32Val top :: xs
-                          _ => Left (Err_StackTypeError "IUnOp CLZ applied to float"))
-             Ctz => (case val of
-                          (I32Val bits) => let top : Bits32 = ctz32 bits in
-                                                    Right $ I32Val top :: xs
-                          (I64Val bits) => let top : Bits32 = ctz64 bits in
-                                                    Right $ I32Val top :: xs
-                          _ => Left (Err_StackTypeError "IUnOp CTZ applied to float"))
+    -- oneStepIUnOp : Stack -> IUnaryOp -> Either InterpError Stack
+    -- oneStepIUnOp [] _           = Left (Err_StackUnderflow "Unop on empty stack")
+    -- oneStepIUnOp (val :: xs) op =
+    --     case op of
+    --          Clz => (case val of
+    --                       (I32Val bits) => let top : Bits32 = clz32 bits in
+    --                                                 Right $ I32Val top :: xs
+    --                       (I64Val bits) => let top : Bits32 = clz64 bits in
+    --                                                 Right $ I32Val top :: xs
+    --                       _ => Left (Err_StackTypeError "IUnOp CLZ applied to float"))
+    --          Ctz => (case val of
+    --                       (I32Val bits) => let top : Bits32 = ctz32 bits in
+    --                                                 Right $ I32Val top :: xs
+    --                       (I64Val bits) => let top : Bits32 = ctz64 bits in
+    --                                                 Right $ I32Val top :: xs
+    --                       _ => Left (Err_StackTypeError "IUnOp CTZ applied to float"))
 
-             Popcnt => ?oneStepIUnOp_rhs_3
+    --          Popcnt => ?oneStepIUnOp_rhs_3
 
-    oneStepFUnOp : Stack -> FUnaryOp -> Either InterpError Stack
+    -- oneStepFUnOp : Stack -> FUnaryOp -> Either InterpError Stack
 
     oneStepIBinOp : Stack -> IBinaryOp -> Either InterpError Stack
     oneStepIBinOp (val1 :: val2 :: tl) op

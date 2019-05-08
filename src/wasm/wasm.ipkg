@@ -1,6 +1,5 @@
 package wasm
 
-opts = "--total"
 
 modules = Structure.Indices
         , Structure.Instr
@@ -9,3 +8,19 @@ modules = Structure.Indices
         , Structure.Values
 
         , Execution.Runtime
+        , Execution.JankInterp
+
+        , Util.BitUtil
+        , Util.ListUtil
+
+        , Tests.JankInterpTestHelp
+        , Tests.JankInterpTest
+        , Tests.SamplePrograms
+        , Tests.ValidatorTest
+
+        , Validation.JankValidator
+        , Validation.PatternValidator
+
+tests = Tests.JankInterpTest.testOnePlusOne
+      , Tests.JankInterpTest.testIf_1
+      , Tests.ValidatorTest.testOnePlusOne

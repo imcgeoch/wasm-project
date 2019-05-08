@@ -9,16 +9,6 @@ import Data.Vect
 
 %access public export
 
-||| Wasm computations manipulate values of the four basic types.
-|||
-||| Note: We can possibly remove this as we are just wrapping Idris values, but
-|||       I'm keeping it in for now to conform to the spec.
-|||
-||| Spec: https://webassembly.github.io/spec/core/exec/runtime.html#syntax-val
-data Val = I32Val Bits32
-         | I64Val Void    -- XXX: Can't be created yet
-         | F32Val Void    -- XXX: Can't be created yet
-         | F64Val Void    -- XXX: Can't be created yet
 
 ||| A result is the outcome of a computation. It is either a sequence of values
 ||| or a trap.
@@ -55,10 +45,10 @@ mutual
     ||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-store
     record Store where
         constructor MkStore
-        funcs   : Vect n1 FuncInst
-        tables  : Vect n2 TableInst
-        mems    : Vect n3 MemInst
-        globals : Vect n4 GlobalInst
+        funcs   : List FuncInst
+        tables  : List TableInst
+        mems    : MemInst    --- XXX: Only using single memory for now!!!
+        globals : List GlobalInst
 
 
 
@@ -119,8 +109,11 @@ mutual
     ||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-meminst
     record MemInst where
         constructor MkMemInst
-        datums : Vect len Bits8
+        datums : List Bits8
         max    : Maybe Bits32
+
+    Show MemInst where
+        show (MkMemInst datums max) = "{mem-inst max: " ++ (show max) ++ "\n               data: " ++ (show datums) ++ "}"
 
     ||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-globalinst
     record GlobalInst where
@@ -159,12 +152,6 @@ mutual
                                       _             => False)
 
 mutual
-    ||| https://webassembly.github.io/spec/core/exec/runtime.html#labels
-    record Label where
-        constructor MkLabel
-        arity : Nat
-        cont  : Expr m
-
     ||| https://webassembly.github.io/spec/core/exec/runtime.html#frames
     record Activation where
         constructor MkActivation
@@ -179,48 +166,38 @@ mutual
 
 
 ||| https://webassembly.github.io/spec/core/exec/runtime.html#stack
-data StackEntry = StVal Val
-                | StLabel Label
-                | StFrame
+Stack : Type
+Stack = List Val
 
-||| https://webassembly.github.io/spec/core/exec/runtime.html#stack
-Stack : Nat ->  Type
-Stack n = Vect n StackEntry
+%name Stack stack
 
 mutual
     data AdminInstr = Trap
                     | Invoke FuncAddr
                     | InitElem TableAddr Bits32 (Vect _ FuncIdx)
                     | InitData MemAddr   Bits32 (Vect _ Bits8)
-                    | Lab Label (Vect _ ExecInstr)
+                    | Label Nat Expr Stack ExecExpr
                     | Frm Frame (Vect _ ExecInstr)
+                    | Breaking Nat Stack
 
     data ExecInstr = Ins Instr | AdIns AdminInstr
 
-    ExecExpr : Nat -> Type
-    ExecExpr n = Vect n ExecInstr
+    ExecExpr : Type
+    ExecExpr = List ExecInstr
+
+    %name ExecExpr expr
 
 ||| Convenience function to transform an Instr into ExecInstr
 toExecInstr : Instr -> ExecInstr
 toExecInstr ins = Ins ins
 
-||| Convenience function to map a Vect of Instrs to a Vect n of ExecInstrs
-toExecInstrs : Vect n Instr -> Vect n ExecInstr
-toExecInstrs = map toExecInstr
-
-||| A thread is a computation over instructions that operates relative to a
-||| current frame referring to the home module instance that the computation
-||| runs in.
-|||
-||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-thread
-Thread : Nat -> Type
-Thread n = (Frame, ExecExpr n)
-
 ||| A configuration consists of the current store and an executing thread.
 |||
 ||| https://webassembly.github.io/spec/core/exec/runtime.html#syntax-config
-Config : Nat -> Type
-Config n = (Store, Thread n)
+Config : Type
+Config = Store
+
+%name Config config
 
 --------------------------------------------------------------------------------
 ---                            Evaluation Context                            ---

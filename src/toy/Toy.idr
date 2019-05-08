@@ -241,10 +241,16 @@ exValidNorm = Norm
 exInvalidNorm : NormalForm (Cd [Const (I32 7)] []) -> Void
 exInvalidNorm Norm impossible 
 
+data Trapped : Code -> Type where
+  Trpd : (c : Code) -> (prf: step c = Nothing) -> Trapped c
+
+
 data Progress : Code -> Type where
-  ProgTrapped : (c : Code) => (step c = Nothing) -> Progress c
+  ProgTrapped : Trapped c -> Progress c
   ProgNormal : NormalForm c -> Progress c
   ProgStep   : (OneStep c c') -> Progress c
+
+
 
 holy_shit_this_is_a_dumb_solution : (mc : Maybe Code) -> Either (c ** mc = Just c) (mc = Nothing)
 holy_shit_this_is_a_dumb_solution Nothing = Right Refl
@@ -253,8 +259,11 @@ holy_shit_this_is_a_dumb_solution (Just x) = Left (x ** Refl)
 total
 progress : HasType c t -> Progress c 
 progress {c = Cd [] vs} (HasTp (Cd [] vs) t prf) = ProgNormal Norm  
-progress {c = Cd (x :: xs) vs} (HasTp cd@(Cd (x :: xs) vs) t prf) 
-  = case holy_shit_this_is_a_dumb_solution (step cd) of
-            (Left (c ** l)) => ?rhs_1
-            (Right r)       => ?rhs_2
+progress {c = Cd (x :: xs) vs} (HasTp (Cd (x :: xs) vs) t prf) 
+  = case holy_shit_this_is_a_dumb_solution (step (Cd (x :: xs) vs)) of
+            (Left (c0 ** l)) => let onstp = Step (Cd (x :: xs) vs) c0 l in ProgStep onstp 
+            (Right rfl)       => let trpd = Trpd (Cd (x :: xs) vs) rfl 
+                                  in ProgTrapped trpd 
+
+
 

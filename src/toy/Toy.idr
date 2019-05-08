@@ -239,18 +239,19 @@ data Progress : Code -> Type where
   ProgNormal : NormalForm c -> Progress c
   ProgStep   : (OneStep c c') -> Progress c
 
-holy_shit_this_is_a_dumb_solution : (mc : Maybe Code) -> Either (c ** mc = Just c) (mc = Nothing)
-holy_shit_this_is_a_dumb_solution Nothing = Right Refl
-holy_shit_this_is_a_dumb_solution (Just x) = Left (x ** Refl)
+maybe_to_eq : (mx : Maybe _) -> Either (x ** mx = Just x) (mx = Nothing)
+maybe_to_eq Nothing = Right Refl 
+maybe_to_eq (Just x) = Left (x ** Refl) 
 
 total
 progress : HasType c t -> Progress c 
 progress (HasTp c t prf) with (c)
   progress (HasTp c t prf) | (Cd xs ys) with (t)
     progress (HasTp c t prf) | (Cd []  ys) | zs = ProgNormal Norm 
-    progress (HasTp c t prf) | (Cd (x :: xs) ys) | (z :: zs) = case holy_shit_this_is_a_dumb_solution (step (Cd (x :: xs) ys)) of
-                                                             (Left (c' ** mc)) => ProgStep (Step (Cd (x :: xs) ys) c' mc) 
-                                                             (Right Refl) impossible
+    progress (HasTp c t prf) | (Cd (x :: xs) ys) | (z :: zs) = 
+      case maybe_to_eq (step (Cd (x :: xs) ys)) of
+        Left (c' ** mc) => ProgStep (Step (Cd (x :: xs) ys) c' mc) 
+        Right Refl impossible
     progress (HasTp _ _ Refl) | (Cd es (_ :: _) ) | [] impossible
     progress (HasTp _ _ Refl) | (Cd (_ :: _) vs ) | [] impossible
 

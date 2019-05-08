@@ -236,7 +236,6 @@ data NormalForm : Code -> Type where
   Norm : {vs : Stack} -> NormalForm (Cd [] vs)
 
 data Progress : Code -> Type where
-  ProgTrapped : {c : Code} -> (step c = Nothing) -> Progress c
   ProgNormal : NormalForm c -> Progress c
   ProgStep   : (OneStep c c') -> Progress c
 
@@ -249,12 +248,11 @@ progress : HasType c t -> Progress c
 progress (HasTp c t prf) with (c)
   progress (HasTp c t prf) | (Cd xs ys) with (t)
     progress (HasTp c t prf) | (Cd []  ys) | zs = ProgNormal Norm 
-    progress (HasTp _ _ Refl) | (Cd [] (_ :: _) ) | [] impossible
-    progress (HasTp _ _ Refl) | (Cd (_ :: _) []) | [] impossible
-    progress (HasTp _ _ Refl) | (Cd (_ :: _) (_ :: _)) | [] impossible
     progress (HasTp c t prf) | (Cd (x :: xs) ys) | (z :: zs) = case holy_shit_this_is_a_dumb_solution (step (Cd (x :: xs) ys)) of
                                                              (Left (c' ** mc)) => ProgStep (Step (Cd (x :: xs) ys) c' mc) 
                                                              (Right Refl) impossible
+    progress (HasTp _ _ Refl) | (Cd es (_ :: _) ) | [] impossible
+    progress (HasTp _ _ Refl) | (Cd (_ :: _) vs ) | [] impossible
 
 {-
   --- cheaty trapped version for reference

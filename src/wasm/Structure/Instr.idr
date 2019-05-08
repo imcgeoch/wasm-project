@@ -34,61 +34,61 @@ mutual
     ||| https://webassembly.github.io/spec/core/syntax/instructions.html#instructions
     data Instr = Const    Val
                -- Unary operators
-               | IUnOp    IUnaryOp       Width
-               | FUnOp    FUnaryOp       Width
+               -- | IUnOp    IUnaryOp       Width
+               -- | FUnOp    FUnaryOp       Width
                -- Binary operators
                | IBinOp   IBinaryOp      Width
-               | FBinOp   FBinaryOp      Width
+               -- | FBinOp   FBinaryOp      Width
                -- Int Test instructions
                | ITest    ITestOp        Width
                -- Int Relational Ops
                | IRel     IRelationalOp  Width
                | FRel     FRelationalOp  Width
                -- Conversion Instructions
-               | I32WrapI64
-               | I64ExtendI32  Sign
-               | ITruncF       (IntType   w) (FloatType w) Sign
-               | F32DemoteF64
-               | F64DemoteF32
-               | FConvertI     (FloatType w) (IntType   w) Sign
-               | IReinterpretF (IntType   w) (FloatType w)
-               | FReinterpretI (FloatType w) (IntType   w)
+               -- | I32WrapI64
+               -- | I64ExtendI32  Sign
+               -- | ITruncF       (IntType   w) (FloatType w) Sign
+               -- | F32DemoteF64
+               -- | F64DemoteF32
+               -- | FConvertI     (FloatType w) (IntType   w) Sign
+               -- | IReinterpretF (IntType   w) (FloatType w)
+               -- | FReinterpretI (FloatType w) (IntType   w)
                | Drop
                | Select
-               | LocalGet  LocalIdx
-               | LocalSet  LocalIdx
-               | LocalTee  LocalIdx
-               | GlobalGet GlobalIdx
-               | GlobalSet GlobalIdx
+               -- | LocalGet  LocalIdx
+               -- | LocalSet  LocalIdx
+               -- | LocalTee  LocalIdx
+               -- | GlobalGet GlobalIdx
+               -- | GlobalSet GlobalIdx
                -- Memory Instructions
-               | ILoad      (IntType   w)         MemArg
-               | FLoad      (FloatType w)         MemArg
-               | IStore     (IntType   w)         MemArg
-               | FStore     (FloatType w)         MemArg
-               | ILoad8     (IntType   w) Sign    MemArg
-               | ILoad16    (IntType   w) Sign    MemArg
-               | I64Load32                Sign    MemArg
-               | IStore8    (IntType w)   Sign    MemArg
-               | IStore16   (IntType w)   Sign    MemArg
-               | I64Store32               Sign    MemArg
-               | MemorySize
-               | MemoryGrow
+               -- | ILoad      (IntType   w)         MemArg
+               -- | FLoad      (FloatType w)         MemArg
+               -- | IStore     (IntType   w)         MemArg
+               -- | FStore     (FloatType w)         MemArg
+               -- | ILoad8     (IntType   w) Sign    MemArg
+               -- | ILoad16    (IntType   w) Sign    MemArg
+               -- | I64Load32                Sign    MemArg
+               -- | IStore8    (IntType w)   Sign    MemArg
+               -- | IStore16   (IntType w)   Sign    MemArg
+               -- | I64Store32               Sign    MemArg
+               -- | MemorySize
+               -- | MemoryGrow
                -- Control Instructions
                | Nop
-               | Unreachable
+               -- | Unreachable
                | Block ResultType Expr
-               | Loop  ResultType Expr
+               -- | Loop  ResultType Expr
                | If    ResultType Expr (List Instr)
-               | Br    LabelIdx
-               | BrIf  LabelIdx
+               -- | Br    LabelIdx
+               -- | BrIf  LabelIdx
                -- TODO: br_table, the first argument (the Vect) is a `vec` type in the WASM
                -- spec, which has the additional constraint that n < 2^32. We will need
                -- to create a new type for this, but creating 2^32 in Nats will be
                -- super expensive. Work around? Just don't worry about it?
-               | BrTable (Vect _ LabelIdx) LabelIdx
-               | Return
-               | FnCall FuncIdx
-               | FnCall_Indirect TypeIdx
+               -- | BrTable (Vect _ LabelIdx) LabelIdx
+               -- | Return
+               -- | FnCall FuncIdx
+               -- | FnCall_Indirect TypeIdx
 
 
     data IUnaryOp = Clz
@@ -206,32 +206,32 @@ Show IBinaryOp where
 total
 Show Instr where
     show (Const x) = show  x
-    show (IUnOp op w) = (show op) ++ "_" ++ (show w)
-    show (FUnOp op w) = (show op) ++ "_" ++ (show w)
+    -- show (IUnOp op w) = (show op) ++ "_" ++ (show w)
+    -- show (FUnOp op w) = (show op) ++ "_" ++ (show w)
     show (IBinOp op w) = (show op) ++ "_" ++ (show w)
-    show (FBinOp op w) = "<fbinop>"
+    -- show (FBinOp op w) = "<fbinop>"
     show (ITest op w) = "<itestop>"
     show (IRel op w) = "<irelop>"
     show (FRel op w) = "<frelop>"
-    show I32WrapI64 = "<i32wrapi64>"
-    show (I64ExtendI32 sx) = "<i64extendi32 " ++ (show sx) ++ ">"
-    show (ITruncF int_t float_t sx) = "<itruncf>"
-    show F32DemoteF64 = "f32demotef64"
-    show F64DemoteF32 = "f64demotef32"
-    show (FConvertI float_t int_t sx) = "<fconverti>"
-    show (IReinterpretF int_t float_t) = "ireinterpretf"
-    show (FReinterpretI float_t int_t) = "freinterpteti"
-    show Drop = "drop"
-    show Select = "select"
-    show (LocalGet x) = "(local-get " ++ (show x) ++ ")"
-    show (LocalSet x) = "(local-set " ++ (show x) ++ ")"
-    show (LocalTee x) = "(local-tee " ++ (show x) ++ ")"
-    show (GlobalGet x) = "(global-get " ++ (show x) ++ ")"
-    show (GlobalSet x) = "(global-set " ++ (show x) ++ ")"
-    show (ILoad (ITp w) memarg) = "(i" ++ (show w) ++ "load " ++ (show memarg) ++ ")"
-    show (FLoad (FTp w) memarg) = "(f" ++ (show w) ++ "load " ++ (show memarg) ++ ")"
-    show (IStore (ITp w) memarg) = "(i" ++ (show w) ++ "store " ++ (show memarg) ++ ")"
-    show (FStore (FTp w) memarg) = "(f" ++ (show w) ++ "store " ++ (show memarg) ++ ")"
+    -- show I32WrapI64 = "<i32wrapi64>"
+    -- show (I64ExtendI32 sx) = "<i64extendi32 " ++ (show sx) ++ ">"
+    -- show (ITruncF int_t float_t sx) = "<itruncf>"
+    -- show F32DemoteF64 = "f32demotef64"
+    -- show F64DemoteF32 = "f64demotef32"
+    -- show (FConvertI float_t int_t sx) = "<fconverti>"
+    -- show (IReinterpretF int_t float_t) = "ireinterpretf"
+    -- show (FReinterpretI float_t int_t) = "freinterpteti"
+    -- show Drop = "drop"
+    -- show Select = "select"
+    -- show (LocalGet x) = "(local-get " ++ (show x) ++ ")"
+    -- show (LocalSet x) = "(local-set " ++ (show x) ++ ")"
+    -- show (LocalTee x) = "(local-tee " ++ (show x) ++ ")"
+    -- show (GlobalGet x) = "(global-get " ++ (show x) ++ ")"
+    -- show (GlobalSet x) = "(global-set " ++ (show x) ++ ")"
+    -- show (ILoad (ITp w) memarg) = "(i" ++ (show w) ++ "load " ++ (show memarg) ++ ")"
+    -- show (FLoad (FTp w) memarg) = "(f" ++ (show w) ++ "load " ++ (show memarg) ++ ")"
+    -- show (IStore (ITp w) memarg) = "(i" ++ (show w) ++ "store " ++ (show memarg) ++ ")"
+    -- show (FStore (FTp w) memarg) = "(f" ++ (show w) ++ "store " ++ (show memarg) ++ ")"
     --show (ILoad8 (ITp w) sx memarg) = ?rhs_2
     --show (ILoad16 (ITp w) sx memarg) = ?rhs_3
     --show (I64Load32 sx memarg) = ?rhs_30

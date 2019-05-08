@@ -239,10 +239,11 @@ pres2 (Step c d prf) (HasTp c t tp_prf) with (c)
                    telse = typeExpr els (typeOfStack vs)
                    lemma1 : (tthen = telse) = ite_same (ITC thn els vs) (HasTp (Cd ((If thn els) :: es) vs) t_pat tp_prf) 
                    in (case maybe_to_eq tthen of
+                            (Right nprf) => ?rhs_2
                             (Left (x ** jprf)) => (case maybe_to_eq telse of
-                                                        (Left (y ** jprf')) => ?rhs_3
-                                                        (Right nprf') => ?rhs_4)
-                            (Right nprf) => ?rhs_2)
+                                                        (Right nprf') => ?rhs_4
+                                                        (Left (y ** jprf')) => let lemma2 = 0 
+                                                                                   in ?rhs_3))
 
 --ite_same : IfThnCode c thn els vs-> HasType c t -> ((typeExpr thn (typeOfStack vs)) = (typeExpr els (typeOfStack vs)))
 --ite_same (ITC thn els vs) (HasTp (Cd ((If thn els) :: es) vs) t prf) with (t)

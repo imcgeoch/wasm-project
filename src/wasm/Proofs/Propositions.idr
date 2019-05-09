@@ -5,6 +5,8 @@ import Execution.Runtime
 import Validation.PatternValidator
 import Structure.Types
 
+%access public export
+
 valInterp : Interp -> Maybe (List ValType)
 
 data HasType : Interp -> List ValType -> Type where

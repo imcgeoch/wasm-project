@@ -1,6 +1,6 @@
-module Proofs.ProofTypes
+module Proofs.Propositions
 
-import Execution.JankInterp
+rmport Execution.JankInterp
 import Execution.Runtime
 import Validation.PatternValidator
 import Structure.Types

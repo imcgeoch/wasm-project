@@ -144,18 +144,24 @@ step _ = Nothing
 mutual
 
   total
+  typeIf : (thn : Expr) -> (thn_t : Maybe CodeTp)
+        -> (els : Expr) -> (els_t : Maybe CodeTp)
+        -> Dec (thn_t = els_t)
+				-> (es: Expr) -> (ts : CodeTp)
+				-> Maybe CodeTp
+  typeIf thn (Just t) els (Just t) (Yes Refl) es ts = assert_total $ typeExpr (thn ++ es) ts
+  typeIf _ _ _ _ _ _ _ = Nothing
+
+  total
   typeExpr : Expr -> CodeTp -> Maybe CodeTp
   typeExpr [] ts = Just ts
   typeExpr (I32Add :: es) (T32 :: T32 :: ts) = let ts' = T32 :: ts in
                                                    typeExpr es ts'
-  typeExpr ((If thn els) :: es) (T32 :: ts) =
-    case typeExpr thn ts of
-         Nothing => Nothing
-         Just tt => case typeExpr els ts of
-                         Nothing => Nothing
-                         Just te => case decEq tt te of
-                                              Yes prf => typeExpr es tt
-                                              No contra => Nothing
+  typeExpr ((If thn els) :: es) (T32 :: ts) = let thn_t = typeExpr thn ts
+                                                  els_t = typeExpr els ts
+                                                  dec_e = decEq thn_t els_t
+                                              in  typeIf thn thn_t els els_t dec_e es ts
+
   typeExpr ((Const (I32 x)) :: es) ts = typeExpr es (T32 :: ts)
   typeExpr _ _ = Nothing
 
@@ -169,6 +175,9 @@ data OneStep : Code -> Code -> Type where
 data HasType : Code -> CodeTp -> Type where
     HasTp : (c : Code) -> (t : CodeTp) -> (typeCode c = Just t) ->  HasType c t
 
+proof_maybe : {a : Type} -> (m : Maybe a) -> Either (m = Nothing) (x ** m = Just x)
+proof_maybe Nothing = Left Refl
+proof_maybe (Just x)  = Right (x ** Refl)
 
 total
 pres : OneStep c d -> HasType c t -> HasType d t

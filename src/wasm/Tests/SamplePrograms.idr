@@ -6,6 +6,22 @@ import Structure.Indices
 
 %access export
 
+binOp1 : Expr
+binOp1 = [ Const (I32Val 1)
+         , Const (I32Val 2)
+         , IBinOp IAdd W32
+         ]
+
+binOp2 : Expr
+binOp2 = [ Const (I32Val 1)
+         , Const (I32Val 2)
+         , Const (I32Val 3)
+         , Const (I32Val 4)
+         , IBinOp IAdd W32
+         , IBinOp IAdd W32
+         , IBinOp IAdd W32
+         ]
+
 ||| ifProg1: This program pushes 1 onto the stack and then runs an if statement.
 |||          This if statement should evaluate the `then` clause and push a single
 |||          value to the stack of the parent (top level) stack.

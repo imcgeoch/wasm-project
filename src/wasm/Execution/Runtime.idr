@@ -176,7 +176,7 @@ mutual
                     | Invoke FuncAddr
                     | InitElem TableAddr Bits32 (Vect _ FuncIdx)
                     | InitData MemAddr   Bits32 (Vect _ Bits8)
-                    | Label Nat Expr Stack ExecExpr
+                    | Label Nat Expr ExecExpr Stack
                     | Frm Frame (Vect _ ExecInstr)
                     | Breaking Nat Stack
 

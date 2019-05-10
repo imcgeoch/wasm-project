@@ -12,7 +12,12 @@ import Tests.SamplePrograms
 
 ||| Create a new interp with n bytes of memory
 newInterpWithMemory : Nat -> Expr -> Interp
-newInterpWithMemory n expr = MkInterp (MkStore [] [] (MkMemInst (replicate n 0) Nothing) []) [] (map toExecInstr expr) StatusRunning
+newInterpWithMemory n expr = MkInterp store es [] where
+    store : Store
+    store = (MkStore [] [] (MkMemInst (replicate n 0) Nothing) [])
+    es : ExecExpr
+    es = (map toExecInstr expr)
+
 
 newInterp : Expr -> Interp
 newInterp = newInterpWithMemory 0
@@ -32,13 +37,14 @@ makeExpr [] = []
 makeExpr (x :: xs) = (strToIns x) :: makeExpr xs
 
 partial
-runInterp : Interp -> Interp
-runInterp interp = case interp of
-                         (MkInterp config stack [] status) => interp 
-                         (MkInterp config stack (x :: xs) status) => runInterp (oneStep interp) 
+runInterp : Interp -> Maybe Interp
+runInterp interp = case step interp of
+                        Nothing => Nothing
+                        (Just (MkInterp config [] stack)) => Just $ MkInterp config [] stack
+                        (Just (MkInterp config (e :: es) stack)) => runInterp $ MkInterp config (e :: es) stack
 
 partial
-runExpr : Expr -> Interp
+runExpr : Expr -> Maybe Interp
 runExpr expr = runInterp (newInterp expr)
 
 welcomeWagon : String
@@ -57,10 +63,9 @@ welcomeWagon = unlines [ "+-----------------------------------------------------
                        ]
 
 dumpInterp : Interp -> String
-dumpInterp (MkInterp config stack expr status) =
+dumpInterp (MkInterp config expr stack) =
     unlines [ "--------------------------------------------------------------------------------"
             , "                            INTERPRETER DUMP"
-            , "status: " ++ (show status)
             , "mem: " ++ (show (mems config))
             , "stack: " ++ (show stack)
             , "expr:  " ++ (show expr)
@@ -79,7 +84,9 @@ helpStr = unlines [ "-----------------------------------------------------------
                   ]
 
 procInput : Interp -> String -> Maybe (String, Interp)
-procInput interp "next" = let next = oneStep interp in Just (dumpInterp next, next)
+procInput interp "next" = case step interp of
+                               Nothing => Just ("Terminated", interp)
+                               Just x  => Just (dumpInterp x, x)
 procInput interp "run" = let result = runInterp interp in Just (dumpInterp interp, interp)
 procInput interp "dump" = Just (dumpInterp interp, interp)
 procInput interp "exit" = Nothing
@@ -93,7 +100,6 @@ procInput interp _ = Just ((dumpInterp interp) ++ "Error: couldn't read input\n"
 
 debug' : Interp -> IO ()
 debug' interp = replWith interp "DEBUG> " procInput
-
 
 debugWithMemory : Nat -> Expr -> IO()
 debugWithMemory k expr = do

@@ -11,11 +11,17 @@ preservation : OneStep i j -> HasType i t -> HasType j t
 preservation (Step i j prf) (HasTp i t x) with (i)
   preservation (Step i j prf) (HasTp i t x) | (MkInterp c es vs) with (j)
     preservation (Step i j prf) (HasTp i t x) | (MkInterp c es vs) | (MkInterp cj esj vsj) with (es)
+      {-
+        MATCHING ON EXPRESSIONS
+      -}
       preservation (Step i j prf) (HasTp i t x) | (MkInterp c es vs) | (MkInterp cj esj vsj) | [] = ?preservation_rhs_1
       preservation (Step i j prf) (HasTp i t x)
-          | (MkInterp c es vs)
-          | j@(MkInterp cj esj vsj) 
-          | ((Ins (Const (I32Val y))) :: xs) = HasTp j t ?a_proof
+                   | (MkInterp c es vs)
+                   | (MkInterp cj esj vsj)
+                   | (Ins (Const (I32Val y)) :: xs) =
+                     let j = MkInterp cj esj vsj
+                         x = 1
+                     in HasTp j t ?a_proof
 
       preservation (Step i j prf) (HasTp i t x) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((Ins (Const (I64Val y))) :: xs) = ?preservation_rhs_12
 

@@ -2,7 +2,7 @@ module Proofs.Propositions
 
 import Execution.JankInterp
 import Execution.Runtime
-import Validation.PatternValidator
+import Validation.AdminValidator
 import Structure.Types
 import Structure.Instr
 
@@ -10,8 +10,8 @@ import Structure.Instr
 
 %default total
 
--- to be replaced with vaidate and step as the become available
 valInterp : Interp -> Maybe (List ValType)
+valInterp interp = validate (expr interp) [] []
 
 data HasType : Interp -> List ValType -> Type where
   HasTp : (i : Interp) -> (lst : List ValType) -> (valInterp i = (Just lst)) -> HasType i lst

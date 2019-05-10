@@ -2,14 +2,11 @@ import Proofs.Propositions
 
 import Execution.JankInterp
 import Execution.Runtime
-import Validation.PatternValidator
+import Validation.AdminValidator
 import Structure.Types
 import Structure.Instr
 
 %default total
-
---total _injective_on_arg0 : (Cd x1 _) = (Cd x2 _) -> x1 = x2
---cd_injective_on_arg0 Refl = Refl
 
 interp_injective_es : (MkInterp _ es1 _) = (MkInterp _ es2 _) -> es1 = es2
 interp_injective_es Refl = Refl
@@ -46,9 +43,9 @@ preservation (Step i j prf) (HasTp i t x) with (i)
                    | (MkInterp c es vs)
                    | (MkInterp cj esj vsj)
                    | (Ins (Const (I32Val y)) :: xs) =
-                     let j = MkInterp cj esj vsj
+                     let j' = MkInterp cj esj vsj
                          x = 1
-                     in HasTp j t ?a_proof
+                     in HasTp j' t ?const_i32_1
 
       preservation (Step i j prf) (HasTp i t x) 
                    | (MkInterp c es vs) 

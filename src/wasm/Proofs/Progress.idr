@@ -2,7 +2,7 @@ import Proofs.Propositions
 
 import Execution.JankInterp
 import Execution.Runtime
-import Validation.PatternValidator
+import Validation.AdminValidator
 import Structure.Types
 import Structure.Instr
 

@@ -199,6 +199,8 @@ Config = Store
 
 %name Config config
 
+emptyStore : Store
+emptyStore = MkStore [] [] (MkMemInst [] Nothing) []
 --------------------------------------------------------------------------------
 ---                            Evaluation Context                            ---
 --------------------------------------------------------------------------------

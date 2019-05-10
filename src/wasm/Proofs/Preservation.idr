@@ -23,7 +23,7 @@ preservation (Step i j prf) (HasTp i t x) with (i)
       {-
         MATCHING ON EXPRESSIONS
       -}
-      preservation (Step i j prf) (HasTp i t x) 
+      preservation (Step i j prf) (HasTp i t tp_prf) 
                    | (MkInterp c es vs) 
                    | (MkInterp cj esj vsj) 
                    | [] = 
@@ -31,7 +31,8 @@ preservation (Step i j prf) (HasTp i t x) with (i)
                          just_prf = justInjective prf
                          esj_eq_es = sym $ interp_injective_es just_prf
                          vsj_eq_vs = sym $ interp_injective_vs just_prf
-                         in HasTp j t ?preservation_rhs_1
+                         tsj_eq_ts = cong {f=typeOfStack} vsj_eq_vs
+                         in HasTp j t (rewrite esj_eq_es in rewrite tsj_eq_ts in tp_prf)
       preservation (Step i j prf) (HasTp i t x)
                    | (MkInterp c es vs)
                    | (MkInterp cj esj vsj)
@@ -41,7 +42,7 @@ preservation (Step i j prf) (HasTp i t x) with (i)
                          esj_eq_es = sym  $ interp_injective_es just_prf
                          vsj_eq_vs = sym  $ interp_injective_vs just_prf
                          tsj_eq_ts = cong {f=typeOfStack} vsj_eq_vs
-                     in HasTp j' t (rewrite esj_eq_es in rewrite tsj_eq_ts in x)
+                     in HasTp j' t ?rhs --(rewrite esj_eq_es in rewrite tsj_eq_ts in x)
 
       preservation (Step i j prf) (HasTp i t x) 
                    | (MkInterp c es vs) 

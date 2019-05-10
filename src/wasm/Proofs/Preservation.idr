@@ -37,8 +37,11 @@ preservation (Step i j prf) (HasTp i t x) with (i)
                    | (MkInterp cj esj vsj)
                    | (Ins (Const (I32Val y)) :: xs) =
                      let j' = MkInterp cj esj vsj
-                         x = 1
-                     in HasTp j' t ?const_i32_1
+                         just_prf  = justInjective prf
+                         esj_eq_es = sym  $ interp_injective_es just_prf
+                         vsj_eq_vs = sym  $ interp_injective_vs just_prf
+                         tsj_eq_ts = cong {f=typeOfStack} vsj_eq_vs
+                     in HasTp j' t (rewrite esj_eq_es in rewrite tsj_eq_ts in x)
 
       preservation (Step i j prf) (HasTp i t x) 
                    | (MkInterp c es vs) 

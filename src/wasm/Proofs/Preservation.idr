@@ -71,6 +71,12 @@ preservation (Step i j prf) (HasTp i t tp_prf) with (i)
              (I32Val x) => case tp_prf of Refl impossible
              (I64Val x) => case tp_prf of Refl impossible
 
+      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es []) | (MkInterp cj esj vsj) | ((Ins (IBinOp op W64)) :: es') = case tp_prf of Refl impossible
+      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es (v :: [])) | (MkInterp cj esj vsj) | ((Ins (IBinOp op W64)) :: xs) = 
+        case v of
+             (I32Val x) => case tp_prf of Refl impossible
+             (I64Val x) => case tp_prf of Refl impossible
+
       -- OPERAND WIDTH MISMATCH ERRORS
       --------------------------------
       -- W32
@@ -135,10 +141,6 @@ preservation (Step i j prf) (HasTp i t tp_prf) with (i)
                              vsj_eq_vs = sym $ interp_injective_vs just_prf
                              tsj_eq_ts = cong {f=typeOfStack} vsj_eq_vs
                          in HasTp j' t (rewrite esj_eq_es in rewrite tsj_eq_ts in tp_prf)
-
-
-
-      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((Ins (IBinOp op W64)) :: xs) = ?preservation_rhs_9
 
       preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((Ins Nop) :: xs) = ?preservation_rhs_6
       preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((Ins (Block ys zs)) :: xs) = ?preservation_rhs_7

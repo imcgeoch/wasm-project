@@ -142,9 +142,28 @@ preservation (Step i j prf) (HasTp i t tp_prf) with (i)
                              tsj_eq_ts = cong {f=typeOfStack} vsj_eq_vs
                          in HasTp j' t (rewrite esj_eq_es in rewrite tsj_eq_ts in tp_prf)
 
-      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((Ins Nop) :: xs) = ?preservation_rhs_6
-      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((Ins (Block ys zs)) :: xs) = ?preservation_rhs_7
+      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((Ins Nop) :: es') = ?nop
+      -- -- TODO: Uncomment the following code when Nop gets implemented in the validator
+--         let j' = MkInterp cj esj vsj
+--             just_prf  = justInjective prf
+--             esj_eq_es = sym  $ interp_injective_es just_prf
+--             vsj_eq_vs = sym  $ interp_injective_vs just_prf
+--             tsj_eq_ts = cong {f=typeOfStack} vsj_eq_vs
+--         in HasTp j' t (rewrite esj_eq_es in rewrite tsj_eq_ts in tp_prf)
+
+      preservation (Step i j prf) (HasTp i t tp_prf)
+          | (MkInterp c es vs) 
+          | (MkInterp cj esj vsj) 
+          | ((Ins (Block ys zs)) :: xs) = ?block
+      -- -- TODO: Uncomment the following code when case expr is factored out of validate
+--             let j' = MkInterp cj esj vsj
+--                 just_prf  = justInjective prf
+--                 esj_eq_es = sym  $ interp_injective_es just_prf
+--                 vsj_eq_vs = sym  $ interp_injective_vs just_prf
+--                 tsj_eq_ts = cong {f=typeOfStack} vsj_eq_vs
+--             in HasTp j' t (rewrite esj_eq_es in rewrite tsj_eq_ts in tp_prf)
       preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((Ins (If ys zs ws)) :: xs) = ?preservation_rhs_8
+
       preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((AdIns Trap) :: xs) = ?preservation_rhs_3
       preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((AdIns (Label k ys zs ws)) :: xs) = ?preservation_rhs_10
       preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((AdIns (Breaking k ys)) :: xs) = ?preservation_rhs_11

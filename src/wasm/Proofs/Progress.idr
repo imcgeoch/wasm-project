@@ -23,6 +23,6 @@ progress (HasTp i t prf) with (i)
       progress (HasTp i t prf) | (MkInterp cf (e :: es) vs) |  Right r | (Ins Nop) = case r of Refl impossible
       progress (HasTp i t prf) | (MkInterp cf (e :: es) vs) |  Right r | (Ins (Block xs ys)) = case r of Refl impossible
       progress (HasTp i t prf) | (MkInterp cf (e :: es) vs) |  Right r | (Ins (If xs ys ws)) = case r of Refl impossible
-      progress (HasTp i t prf) | (MkInterp cf (e :: es) vs) |  Right r | (AdIns Trap) = case r of Refl impossible
+      progress (HasTp i t prf) | (MkInterp cf (e :: es) vs) |  Right r | (AdIns Trap) = ProgTrapped $ Trpd 
       progress (HasTp i t prf) | (MkInterp cf (e :: es) vs) |  Right r | (AdIns (Label k xs ys ws)) = case r of Refl impossible
       progress (HasTp i t prf) | (MkInterp cf (e :: es) vs) |  Right r | (AdIns (Breaking k xs)) = case prf of Refl impossible

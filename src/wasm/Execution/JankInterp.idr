@@ -56,7 +56,6 @@ step (MkInterp config ((Ins (If tp thn els)) :: es) (I32Val v :: vs)) =
       where
         block = Ins (Block tp (if v /= 0 then thn else els))
 
-step (MkInterp config (AdIns Trap :: es) vs) = Just $ MkInterp config (AdIns Trap :: es) vs
 step (MkInterp config (AdIns (Label k cont [] vs') :: es) vs) =
       Just $ MkInterp config es ((take k vs') ++ vs)
 

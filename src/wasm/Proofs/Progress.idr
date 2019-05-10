@@ -19,15 +19,18 @@ progress (HasTp i t prf) with (i)
              | (MkInterp cf [] vs)        
              | zs 
                = ProgNormal Norm 
-    -- I think this is to facile. Shouldn't we have to rely on the fact it type checks?
-    -- I think we might eb getting a "convenient" unification failure
-    -- that is saying it's impossible for step to return nothing.
-    progress (HasTp i t prf) 
-              | (MkInterp cf (e :: es) vs) 
-              | (z :: zs) 
-                = case maybe_to_eq $ step $ MkInterp cf (e :: es) vs of
-                  Left (i' ** mi) => 
-                       ProgStep $ Step (MkInterp cf (e :: es) vs) i' mi 
-                  Right r => ?why_does_idris_think_this_is_impossible 
+    progress (HasTp i t prf) | (MkInterp cf (e :: es) vs) | (z :: zs) with (maybe_to_eq $ step $ MkInterp cf (e :: es) vs)
+      progress (HasTp i t prf) | (MkInterp cf (e :: es) vs) | (z :: zs) | Left (i' ** mi) = ProgStep $ Step (MkInterp cf (e :: es) vs) i' mi 
+
+      progress (HasTp i t prf) | (MkInterp cf (e :: es) vs) | (z :: zs) | Right r with (e)
+        progress (HasTp i t prf) | (MkInterp cf (e :: es) vs) | (z :: zs) | Right r | (Ins (Const x)) = case r of Refl impossible
+        progress (HasTp i t prf) | (MkInterp cf (e :: es) vs) | (z :: zs) | Right r | (Ins (IBinOp op w)) = case r of Refl impossible
+        progress (HasTp i t prf) | (MkInterp cf (e :: es) vs) | (z :: zs) | Right r | (Ins Nop) = case r of Refl impossible
+        progress (HasTp i t prf) | (MkInterp cf (e :: es) vs) | (z :: zs) | Right r | (Ins (Block xs ys)) = case r of Refl impossible
+        progress (HasTp i t prf) | (MkInterp cf (e :: es) vs) | (z :: zs) | Right r | (Ins (If xs ys ws)) = case r of Refl impossible
+        progress (HasTp i t prf) | (MkInterp cf (e :: es) vs) | (z :: zs) | Right r | (AdIns Trap) = case r of Refl impossible
+        progress (HasTp i t prf) | (MkInterp cf (e :: es) vs) | (z :: zs) | Right r | (AdIns (Label k xs ys ws)) = case r of Refl impossible
+        progress (HasTp i t prf) | (MkInterp cf (e :: es) vs) | (z :: zs) | Right r | (AdIns (Breaking k xs)) = ?progress_rhs_9
+    
     progress (HasTp i t prf) | (MkInterp cf (e :: es) vs ) | [] = ?unpossible1
     progress (HasTp i t prf) | (MkInterp cf es (v :: vs)) | [] = ?unpossible2

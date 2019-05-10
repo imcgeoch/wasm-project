@@ -34,10 +34,13 @@ i64binop IMul v1 v2 = I64Val (prim__mulB64 v1 v2)
 step : (interp : Interp) -> Maybe Interp
 step (MkInterp config [] vs) = Just (MkInterp config [] vs)
 step (MkInterp config ((Ins (Const val)) :: es) vs) = Just $ MkInterp config es (val :: vs)
-step (MkInterp config ((Ins (IBinOp op W32)) :: es) (I32Val v1 :: I32Val v2 :: vs) ) =
-      Just $ MkInterp config es ((i32binop op v1 v2) :: vs)
-step (MkInterp config ((Ins (IBinOp op W64)) :: es) (I64Val v1 :: I64Val v2 :: vs) ) =
-      Just $ MkInterp config es ((i64binop op v1 v2) :: vs)
+step (MkInterp config ((Ins (IBinOp IAdd W32)) :: es) (I32Val v1 :: I32Val v2 :: vs) ) = Just $ MkInterp config es ((i32binop IAdd v1 v2) :: vs)
+step (MkInterp config ((Ins (IBinOp ISub W32)) :: es) (I32Val v1 :: I32Val v2 :: vs) ) = Just $ MkInterp config es ((i32binop ISub v1 v2) :: vs)
+step (MkInterp config ((Ins (IBinOp IMul W32)) :: es) (I32Val v1 :: I32Val v2 :: vs) ) = Just $ MkInterp config es ((i32binop IMul v1 v2) :: vs)
+
+step (MkInterp config ((Ins (IBinOp IAdd W64)) :: es) (I64Val v1 :: I64Val v2 :: vs) ) = Just $ MkInterp config es ((i64binop IAdd v1 v2) :: vs)
+step (MkInterp config ((Ins (IBinOp ISub W64)) :: es) (I64Val v1 :: I64Val v2 :: vs) ) = Just $ MkInterp config es ((i64binop ISub v1 v2) :: vs)
+step (MkInterp config ((Ins (IBinOp IMul W64)) :: es) (I64Val v1 :: I64Val v2 :: vs) ) = Just $ MkInterp config es ((i64binop IMul v1 v2) :: vs)
 
 step (MkInterp config ((Ins Nop) :: es) vs) = Just $ MkInterp config es vs
 step (MkInterp config ((Ins (Block tp es')) :: es) vs) = Just $ MkInterp config expr vs

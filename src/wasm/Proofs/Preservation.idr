@@ -17,9 +17,9 @@ interp_injective_vs Refl = Refl
 
 total
 preservation : OneStep i j -> HasType i t -> HasType j t
-preservation (Step i j prf) (HasTp i t x) with (i)
-  preservation (Step i j prf) (HasTp i t x) | (MkInterp c es vs) with (j)
-    preservation (Step i j prf) (HasTp i t x) | (MkInterp c es vs) | (MkInterp cj esj vsj) with (es)
+preservation (Step i j prf) (HasTp i t tp_prf) with (i)
+  preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) with (j)
+    preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) with (es)
       {-
         MATCHING ON EXPRESSIONS
       -}
@@ -33,7 +33,8 @@ preservation (Step i j prf) (HasTp i t x) with (i)
                          vsj_eq_vs = sym $ interp_injective_vs just_prf
                          tsj_eq_ts = cong {f=typeOfStack} vsj_eq_vs
                          in HasTp j t (rewrite esj_eq_es in rewrite tsj_eq_ts in tp_prf)
-      preservation (Step i j prf) (HasTp i t x)
+
+      preservation (Step i j prf) (HasTp i t tp_prf)
                    | (MkInterp c es vs)
                    | (MkInterp cj esj vsj)
                    | (Ins (Const (I32Val y)) :: xs) =
@@ -42,9 +43,9 @@ preservation (Step i j prf) (HasTp i t x) with (i)
                          esj_eq_es = sym  $ interp_injective_es just_prf
                          vsj_eq_vs = sym  $ interp_injective_vs just_prf
                          tsj_eq_ts = cong {f=typeOfStack} vsj_eq_vs
-                     in HasTp j' t ?rhs --(rewrite esj_eq_es in rewrite tsj_eq_ts in x)
+                     in HasTp j' t (rewrite esj_eq_es in rewrite tsj_eq_ts in tp_prf)
 
-      preservation (Step i j prf) (HasTp i t x) 
+      preservation (Step i j prf) (HasTp i t tp_prf) 
                    | (MkInterp c es vs) 
                    | (MkInterp cj esj vsj) 
                    | ((Ins (Const (I64Val y))) :: xs) = 
@@ -53,16 +54,34 @@ preservation (Step i j prf) (HasTp i t x) with (i)
                          esj_eq_es = sym $ interp_injective_es just_prf
                          vsj_eq_vs = sym $ interp_injective_vs just_prf
                          tsj_eq_ts = cong {f=typeOfStack} vsj_eq_vs
-                         in HasTp j' t (rewrite esj_eq_es in rewrite tsj_eq_ts in x)  
+                         in HasTp j' t (rewrite esj_eq_es in rewrite tsj_eq_ts in tp_prf)  
 
-      preservation (Step i j prf) (HasTp i t x) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((Ins (IBinOp op W32)) :: xs) = ?preservation_rhs_4
-      preservation (Step i j prf) (HasTp i t x) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((Ins (IBinOp op W64)) :: xs) = ?preservation_rhs_9
+      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es []) | (MkInterp cj esj vsj) | ((Ins (IBinOp op W32)) :: es') =
+          case tp_prf of Refl impossible
 
-      preservation (Step i j prf) (HasTp i t x) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((Ins Nop) :: xs) = ?preservation_rhs_6
-      preservation (Step i j prf) (HasTp i t x) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((Ins (Block ys zs)) :: xs) = ?preservation_rhs_7
-      preservation (Step i j prf) (HasTp i t x) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((Ins (If ys zs ws)) :: xs) = ?preservation_rhs_8
-      preservation (Step i j prf) (HasTp i t x) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((AdIns Trap) :: xs) = ?preservation_rhs_3
-      preservation (Step i j prf) (HasTp i t x) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((AdIns (Label k ys zs ws)) :: xs) = ?preservation_rhs_10
-      preservation (Step i j prf) (HasTp i t x) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((AdIns (Breaking k ys)) :: xs) = ?preservation_rhs_11
+      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es (v :: [])) | (MkInterp cj esj vsj) | ((Ins (IBinOp op W32)) :: xs) =
+        case tp_prf of 
+             case_val => ?arade
+
+      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es ((I32Val v1) :: ((I32Val v2) :: vs))) | (MkInterp cj esj vsj) | ((Ins (IBinOp op W32)) :: xs) = ?rhs_4
+      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es ((I32Val v1) :: ((I64Val v2) :: vs))) | (MkInterp cj esj vsj) | ((Ins (IBinOp op W32)) :: xs) = ?rhs_6
+      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es ((I64Val v1) :: ((I32Val v2) :: vs))) | (MkInterp cj esj vsj) | ((Ins (IBinOp op W32)) :: xs) = ?rhs_2
+      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es ((I64Val v1) :: ((I64Val v2) :: vs))) | (MkInterp cj esj vsj) | ((Ins (IBinOp op W32)) :: xs) = ?rhs_7
+
+--               let j' = MkInterp cj esj vsj
+--                   just_prf  = justInjective prf
+--                   esj_eq_es = sym $ interp_injective_es just_prf
+--                   vsj_eq_vs = sym $ interp_injective_vs just_prf
+--                   tsj_eq_ts = cong {f=typeOfStack} vsj_eq_vs
+--               in HasTp j' t ?bin_op
+
+      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((Ins (IBinOp op W64)) :: xs) = ?preservation_rhs_9
+
+      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((Ins Nop) :: xs) = ?preservation_rhs_6
+      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((Ins (Block ys zs)) :: xs) = ?preservation_rhs_7
+      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((Ins (If ys zs ws)) :: xs) = ?preservation_rhs_8
+      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((AdIns Trap) :: xs) = ?preservation_rhs_3
+      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((AdIns (Label k ys zs ws)) :: xs) = ?preservation_rhs_10
+      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((AdIns (Breaking k ys)) :: xs) = ?preservation_rhs_11
 
     

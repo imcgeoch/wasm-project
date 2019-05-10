@@ -7,7 +7,7 @@ import Structure.Types
 import Structure.Instr
 
 
-maybe_to_eq : (mx : Maybe Interp) -> Either (x ** mx = Just x) (mx = Nothing)
+maybe_to_eq : (mx : Maybe a) -> Either (x ** mx = Just x) (mx = Nothing)
 maybe_to_eq Nothing = Right Refl
 maybe_to_eq (Just x) = Left (x ** Refl)
 

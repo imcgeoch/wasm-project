@@ -15,5 +15,5 @@ total
 progress : HasType i t -> Progress i
 progress (HasTp i t prf) with (i)
   progress (HasTp i t prf) | i_pat with (t)
-    progress (HasTp i t prf) | (MkInterp cf vs [] st)       | t_pat = ProgNormal Norm 
-    progress (HasTp i t prf) | (MkInterp cf vs (x :: xs) st)       | t_pat = ?rhs_2 
+    progress (HasTp i t prf) | (MkInterp cf [] vs)        | t_pat = ProgNormal Norm 
+    progress (HasTp i t prf) | (MkInterp cf (x :: xs) vs) | t_pat = ?rhs_2 

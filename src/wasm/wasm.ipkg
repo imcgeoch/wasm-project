@@ -20,6 +20,8 @@ modules = Structure.Indices
         , Validation.AdminValidator
 
         , Proofs.Propositions
+        , Proofs.Preservation
+        , Proofs.Progress
 
 tests = Tests.JankInterpTest.testOnePlusOne
       , Tests.JankInterpTest.testIf_1

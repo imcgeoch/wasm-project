@@ -33,7 +33,15 @@ preservation (Step i j prf) (HasTp i t x) with (i)
       {-
         MATCHING ON EXPRESSIONS
       -}
-      preservation (Step i j prf) (HasTp i t x) | (MkInterp c es vs) | (MkInterp cj esj vsj) | [] = ?preservation_rhs_1
+      preservation (Step i j prf) (HasTp i t x) 
+                   | (MkInterp c es vs) 
+                   | (MkInterp cj esj vsj) 
+                   | [] = 
+                     let j = (MkInterp cj esj vsj)
+                         just_prf = justInjective prf
+                         esj_eq_es = sym $ interp_injective_es just_prf
+                         vsj_eq_vs = sym $ interp_injective_vs just_prf
+                         in HasTp j t ?preservation_rhs_1
       preservation (Step i j prf) (HasTp i t x)
                    | (MkInterp c es vs)
                    | (MkInterp cj esj vsj)
@@ -46,14 +54,12 @@ preservation (Step i j prf) (HasTp i t x) with (i)
                    | (MkInterp c es vs) 
                    | (MkInterp cj esj vsj) 
                    | ((Ins (Const (I64Val y))) :: xs) = 
-                     let j1 = MkInterp cj esj vsj
-                         just_prf : ((MkInterp c xs (I64Val y :: vs)) 
-                                    = (MkInterp cj esj vsj)) 
-                                    = justInjective prf
+                     let j = MkInterp cj esj vsj
+                         just_prf  = justInjective prf
                          esj_eq_es = sym $ interp_injective_es just_prf
                          vsj_eq_vs = sym $ interp_injective_vs just_prf
                          tsj_eq_ts = cong {f=typeOfStack} vsj_eq_vs
-                         in HasTp j1 t ?c64_prf  
+                         in HasTp j t ?c64_prf  
 
       preservation (Step i j prf) (HasTp i t x) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((Ins (IBinOp op W32)) :: xs) = ?preservation_rhs_4
       preservation (Step i j prf) (HasTp i t x) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((Ins (IBinOp op W64)) :: xs) = ?preservation_rhs_9

@@ -11,10 +11,10 @@ import Structure.Instr
 --total _injective_on_arg0 : (Cd x1 _) = (Cd x2 _) -> x1 = x2
 --cd_injective_on_arg0 Refl = Refl
 
-interp_injective_es : (MkInterp _ es1 _) = (MkInterp _ es2 _) -> es1 = es2  
+interp_injective_es : (MkInterp _ es1 _) = (MkInterp _ es2 _) -> es1 = es2
 interp_injective_es Refl = Refl
 
-interp_injective_vs : (MkInterp _ _ vs1) = (MkInterp _ _ vs2) -> vs1 = vs2  
+interp_injective_vs : (MkInterp _ _ vs1) = (MkInterp _ _ vs2) -> vs1 = vs2
 interp_injective_vs Refl = Refl
 
 typeOfVal : Val -> ValType

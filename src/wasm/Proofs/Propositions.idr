@@ -4,6 +4,7 @@ import Execution.JankInterp
 import Execution.Runtime
 import Validation.PatternValidator
 import Structure.Types
+import Structure.Instr
 
 %access public export
 
@@ -24,7 +25,7 @@ data NormalForm : Interp -> Type where
   Norm : NormalForm (MkInterp _ _ [] _) 
  
 data Trapped : Interp -> Type where
-  Trpd : Trapped (MkInterp _ _ _ StatusTrapped)
+  Trpd : Trapped (MkInterp _ _ (AdIns Trap :: es) _)
 
 data Progress : Interp -> Type where
   ProgNormal  : NormalForm i  -> Progress i

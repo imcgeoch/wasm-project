@@ -168,9 +168,15 @@ preservation (Step i j prf) (HasTp i t tp_prf) with (i)
                    | (MkInterp c es vs) 
                    | (MkInterp cj esj vsj) 
                    | ((AdIns Trap) :: xs) 
-                     = case tp_prf of
-                       Refl impossible
-      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((AdIns (Label k ys zs ws)) :: xs) = ?preservation_rhs_10
-      preservation (Step i j prf) (HasTp i t tp_prf) | (MkInterp c es vs) | (MkInterp cj esj vsj) | ((AdIns (Breaking k ys)) :: xs) = ?preservation_rhs_11
+                     = case tp_prf of Refl impossible
+      preservation (Step i j prf) (HasTp i t tp_prf) 
+                   | (MkInterp c es vs) 
+                   | (MkInterp cj esj vsj) 
+                   | ((AdIns (Breaking k ys)) :: xs) 
+                     = case tp_prf of Refl impossible
 
+      preservation (Step i j prf) (HasTp i t tp_prf) 
+                   | (MkInterp c es vs) 
+                   | (MkInterp cj esj vsj) 
+                   | ((AdIns (Label k ys zs ws)) :: xs) = ?preservation_rhs_10
     

@@ -5,7 +5,6 @@ modules = Structure.Indices
         , Structure.Instr
         , Structure.Modules
         , Structure.Types
-        , Structure.Values
 
         , Execution.Runtime
         , Execution.JankInterp

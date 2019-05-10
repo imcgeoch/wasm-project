@@ -55,3 +55,4 @@ progress (HasTp i t prf) with (i)
                 | (MkInterp cf (e :: es) vs) 
                 |  Right r 
                 | (AdIns (Breaking k xs)) = case prf of Refl impossible
+

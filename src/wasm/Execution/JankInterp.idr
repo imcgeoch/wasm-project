@@ -54,9 +54,6 @@ step (MkInterp config ((Ins (If tp thn els)) :: es) (I32Val v :: vs)) =
         block = Ins (Block tp (if v /= 0 then thn else els))
 
 step (MkInterp config (AdIns Trap :: es) vs) = Just $ MkInterp config (AdIns Trap :: es) vs
-step (MkInterp config (AdIns (Invoke k) :: es) vs) = ?step_rhs_8
-step (MkInterp config (AdIns (InitElem k x xs) :: es) vs) = ?step_rhs_9
-step (MkInterp config (AdIns (InitData k x xs) :: es) vs) = ?step_rhs_10
 step (MkInterp config (AdIns (Label k cont [] vs') :: es) vs) =
       Just $ MkInterp config es ((take k vs') ++ vs)
 
@@ -76,7 +73,6 @@ step (MkInterp config (AdIns (Label k cont (e :: es') vs') :: es) vs) with (asse
   step (MkInterp config (AdIns (Label k cont (e :: es') vs') :: es) vs) | (Just (MkInterp cnf' expr stack)) =
       Just $ MkInterp cnf' (AdIns (Label k cont expr stack) :: es) vs
 
-step (MkInterp config ((AdIns (Frm x xs)) :: es) vs) = ?step_rhs_12
 step _ = Nothing
 
 
@@ -84,10 +80,7 @@ mutual
     partial
     Show AdminInstr where
         show Trap = "trap"
-        show (Invoke k) = "(invoke " ++ (show k) ++ ")"
-        show (InitData k x xs) = ""
         show (Label k cont es vs) = "{label\n    arity: " ++ (show k) ++ ",\n    cont: " ++ (show cont) ++ ",\n    vs: " ++ (show vs) ++ "\n    es:" ++ (show es) ++ ")"
-        show (Frm x xs) = ""
         show (Breaking k xs) = "(breaking " ++ (show k) ++ ", " ++ (show xs) ++ ")"
 
     partial

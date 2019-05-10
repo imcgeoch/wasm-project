@@ -173,12 +173,12 @@ Stack = List Val
 
 mutual
     data AdminInstr = Trap
-                    | Invoke FuncAddr
-                    | InitElem TableAddr Bits32 (Vect _ FuncIdx)
-                    | InitData MemAddr   Bits32 (Vect _ Bits8)
                     | Label Nat Expr ExecExpr Stack
-                    | Frm Frame (Vect _ ExecInstr)
                     | Breaking Nat Stack
+                    -- | Invoke FuncAddr
+                    -- | InitElem TableAddr Bits32 (Vect _ FuncIdx)
+                    -- | InitData MemAddr   Bits32 (Vect _ Bits8)
+                    -- | Frm Frame (Vect _ ExecInstr)
 
     data ExecInstr = Ins Instr | AdIns AdminInstr
 

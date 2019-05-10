@@ -16,10 +16,10 @@ data IntType : Width -> Type where
 
 %name IntType int_t
 
-data FloatType : Width -> Type where
-    FTp : (w : Width) -> FloatType w
+--data FloatType : Width -> Type where
+--    FTp : (w : Width) -> FloatType w
 
-%name FloatType float_t
+--%name FloatType float_t
 
 data PackedType = Packed8
                 | Packed16
@@ -30,7 +30,7 @@ data PackedType = Packed8
 ||| ValType: Basic machine types
 |||
 ||| Spec: https://webassembly.github.io/spec/core/syntax/types.html#syntax-valtype
-data ValType = IValTp (IntType w) | FValTp (FloatType w)
+data ValType = IValTp (IntType w) -- | FValTp (FloatType w)
 
 %name ValType val_t
 
@@ -40,11 +40,11 @@ I32_t = IValTp (ITp W32)
 I64_t : ValType
 I64_t = IValTp (ITp W64)
 
-F32_t : ValType
-F32_t = FValTp (FTp W32)
+--F32_t : ValType
+--F32_t = FValTp (FTp W32)
 
-F64_t : ValType
-F64_t = FValTp (FTp W64)
+--F64_t : ValType
+--F64_t = FValTp (FTp W64)
 
 width' : Width -> Nat
 width' W32 = 32
@@ -53,7 +53,7 @@ width' W64 = 64
 ||| Get the width in bits of a ValType
 width : ValType -> Nat
 width (IValTp (ITp w)) = width' w
-width (FValTp (FTp w)) = width' w
+--width (FValTp (FTp w)) = width' w
 
 
 
@@ -169,12 +169,12 @@ Eq Width where
 Eq (IntType w) where
     _ == _ = True
 
-Eq (FloatType w) where
-    _ == _ = True
+--Eq (FloatType w) where
+--    _ == _ = True
 
 Eq ValType where
     (IValTp (ITp w)) == (IValTp (ITp w')) = w == w'
-    (FValTp (FTp w)) == (FValTp (FTp w')) = w == w'
+--    (FValTp (FTp w)) == (FValTp (FTp w')) = w == w'
     _ == _ = False
 
 w32NotW64 : (W32 = W64) -> Void
@@ -189,40 +189,40 @@ implementation DecEq Width where
 implementation DecEq (IntType w) where
     decEq (ITp w) (ITp w) = Yes Refl
 
-implementation DecEq (FloatType w) where
-    decEq (FTp w) (FTp w) = Yes Refl
+--implementation DecEq (FloatType w) where
+--    decEq (FTp w) (FTp w) = Yes Refl
 
 iVal32NotIVal64 : (IValTp (ITp W32) = IValTp (ITp W64)) -> Void
 iVal32NotIVal64 Refl impossible
 
 
-iValNotFVal : (IValTp int_t = FValTp float_t) -> Void
-iValNotFVal Refl impossible
+--iValNotFVal : (IValTp int_t = FValTp float_t) -> Void
+--iValNotFVal Refl impossible
 
-fVal32NotFVal64 : (FValTp (FTp W32) = FValTp (FTp W64)) -> Void
-fVal32NotFVal64 Refl impossible
+--fVal32NotFVal64 : (FValTp (FTp W32) = FValTp (FTp W64)) -> Void
+--fVal32NotFVal64 Refl impossible
 
 machineType : ValType -> Type
 machineType (IValTp (ITp W32)) = Bits32
 machineType (IValTp (ITp W64)) = Bits64
-machineType (FValTp (FTp W32)) = Double
-machineType (FValTp (FTp W64)) = Double
+--machineType (FValTp (FTp W32)) = Double
+--machineType (FValTp (FTp W64)) = Double
 
 implementation DecEq ValType where
     decEq (IValTp (ITp W32)) (IValTp (ITp W32)) = Yes Refl
     decEq (IValTp (ITp W32)) (IValTp (ITp W64)) = No iVal32NotIVal64
     decEq (IValTp (ITp W64)) (IValTp (ITp W32)) = No (negEqSym iVal32NotIVal64)
     decEq (IValTp (ITp W64)) (IValTp (ITp W64)) = Yes Refl
-    decEq (FValTp (FTp W32)) (FValTp (FTp W32)) = Yes Refl
-    decEq (FValTp (FTp W32)) (FValTp (FTp W64)) = No fVal32NotFVal64
-    decEq (FValTp (FTp W64)) (FValTp (FTp W32)) = No (negEqSym fVal32NotFVal64)
-    decEq (FValTp (FTp W64)) (FValTp (FTp W64)) = Yes Refl
-    decEq (IValTp int_t) (FValTp float_t) = No iValNotFVal
-    decEq (FValTp float_t) (IValTp int_t) = No (negEqSym iValNotFVal)
+--    decEq (FValTp (FTp W32)) (FValTp (FTp W32)) = Yes Refl
+--    decEq (FValTp (FTp W32)) (FValTp (FTp W64)) = No fVal32NotFVal64
+--   decEq (FValTp (FTp W64)) (FValTp (FTp W32)) = No (negEqSym fVal32NotFVal64)
+--    decEq (FValTp (FTp W64)) (FValTp (FTp W64)) = Yes Refl
+--    decEq (IValTp int_t) (FValTp float_t) = No iValNotFVal
+--    decEq (FValTp float_t) (IValTp int_t) = No (negEqSym iValNotFVal)
 
 Show ValType where
     show (IValTp (ITp W32)) = "i32_t"
     show (IValTp (ITp W64)) = "i64_t"
-    show (FValTp (FTp W32)) = "f32_t"
-    show (FValTp (FTp W64)) = "f64_t"
+--    show (FValTp (FTp W32)) = "f32_t"
+--    show (FValTp (FTp W64)) = "f64_t"
     

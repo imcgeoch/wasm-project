@@ -22,8 +22,8 @@ import Data.Bits
 ||| Spec: https://webassembly.github.io/spec/core/exec/runtime.html#syntax-val
 data Val = I32Val Bits32
          | I64Val Bits64
-         | F32Val Void    -- XXX: Can't be created yet
-         | F64Val Void    -- XXX: Can't be created yet
+--         | F32Val Void    -- XXX: Can't be created yet
+--         | F64Val Void    -- XXX: Can't be created yet
 
 implementation Eq Val where
     (I32Val x) == (I32Val y) = x == y
